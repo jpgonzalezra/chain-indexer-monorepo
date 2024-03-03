@@ -1,0 +1,11 @@
+[package]
+name = "common"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+dotenv = { version = "0.15" }
+redis = { version = "0.24.0", features = [
+    "tokio-comp",
+    "tokio-native-tls-comp",
+] }

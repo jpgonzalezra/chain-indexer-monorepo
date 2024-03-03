@@ -1,13 +1,8 @@
 [workspace]
 resolver = "2"
-members = ["apps/*"]
-default-members = [
-    "apps/chain-watcher",
-    "apps/assets-indexer",
-]
-exclude = [
-    "apps/.DS_Store",
-]
+members = ["apps/*", "libs/common"]
+default-members = ["apps/chain-watcher", "apps/assets-indexer", "libs/common"]
+exclude = ["apps/.DS_Store"]
 
 [profile.release]
 lto = true
