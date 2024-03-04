@@ -1,55 +1,12 @@
 use common::redis::redis_client_factory;
+use common::types::SummaryLog;
 use dotenv::dotenv;
 use ethers::providers::{Http, Middleware, Provider};
-use ethers::types::Transaction;
-use ethers::utils::hex;
 use redis::AsyncCommands;
-use serde::{Deserialize, Serialize};
 use std::env;
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::time::sleep;
-
-#[derive(Serialize, Deserialize)]
-struct SummaryTransaction {
-    pub hash: String,
-    pub block_hash: String,
-    pub block_number: u64,
-    pub chain_id: String,
-    pub input: String,
-    pub from: String,
-    pub to: String,
-    pub nonce: String,
-    pub transaction_index: u64,
-    pub value: String,
-}
-
-impl From<Transaction> for SummaryTransaction {
-    fn from(tx: Transaction) -> Self {
-        SummaryTransaction {
-            hash: tx.hash.to_string(),
-            block_hash: tx
-                .block_hash
-                .map_or_else(|| "None".to_string(), |h| h.to_string()),
-            block_number: tx
-                .block_number
-                .map_or_else(|| 0, |block_number| block_number.as_u64()),
-            chain_id: tx
-                .chain_id
-                .map_or_else(|| 1.to_string(), |chain_id| chain_id.to_string()),
-            input: hex::encode(tx.input),
-            from: tx.from.to_string(),
-            to: tx
-                .to
-                .map_or_else(|| "None".to_string(), |to| to.to_string()),
-            nonce: tx.nonce.to_string(),
-            transaction_index: tx
-                .transaction_index
-                .map_or_else(|| 0, |index| index.as_u64()),
-            value: tx.value.to_string(),
-        }
-    }
-}
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -80,12 +37,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             );
 
             for transaction in block.transactions {
-                let summary_transaction: SummaryTransaction = transaction.into();
-                let message = serde_json::to_string(&summary_transaction).unwrap();
-                let _: () = redis_conn
-                    .xadd("ASSETS_INDEXER_STREAM", "*", &[("message", &message)])
-                    .await
-                    .unwrap();
+                let tx_receipt =
+                    provider.get_transaction_receipt(transaction.hash).await?;
+                if let Some(receipt) = tx_receipt {
+                    for log in receipt.logs {
+                        let summary_log: SummaryLog = log.into();
+                        let message = serde_json::to_string(&summary_log).unwrap();
+                        let _: () = redis_conn
+                            .xadd("ASSETS_INDEXER_STREAM", "*", &[("message", &message)])
+                            .await
+                            .unwrap();
+                    }
+                }
             }
         }
         sleep(Duration::from_secs(1)).await;
