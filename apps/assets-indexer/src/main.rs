@@ -39,6 +39,7 @@ async fn ensure_stream_and_group_exist(
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut redis_conn = redis_client_factory()
+        .expect("Error on acquiring redis client")
         .get_async_connection()
         .await
         .expect("Error on acquiring redis connection");
