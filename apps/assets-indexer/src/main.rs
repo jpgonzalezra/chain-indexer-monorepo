@@ -65,12 +65,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 for stream in reply.keys {
                     for message in stream.ids {
                         println!("ID: {}, Values: {:?}", message.id, message.map);
+                        println!("-----");
                     }
                 }
             }
             Err(e) => println!("Error reading from stream: {}", e),
         }
 
-        sleep(Duration::from_millis(500)).await;
+        sleep(Duration::from_millis(1)).await;
     }
 }

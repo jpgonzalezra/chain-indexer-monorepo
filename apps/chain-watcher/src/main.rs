@@ -44,21 +44,22 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     if let Ok(Some(receipt)) =
                         provider.get_transaction_receipt(transaction.hash).await
                     {
-                        for log in receipt.logs {
-                            let summary_log: SummaryLog = log.into();
-                            let message: String =
-                                serde_json::to_string(&summary_log).unwrap();
-                            let mut conn =
-                                pool_clone.get().await.expect("Pool connection Error");
-                            let _: () = conn
-                                .xadd(
-                                    "ASSETS_INDEXER_STREAM",
-                                    "*",
-                                    &[("message", &message)],
-                                )
-                                .await
-                                .expect("Error sending message");
+                        let logs = receipt.logs;
+                        if logs.is_empty() {
+                            return;
                         }
+                        let mut conn =
+                            pool_clone.get().await.expect("Pool connection Error");
+
+                        let summary_logs: Vec<SummaryLog> =
+                            logs.iter().map(|log| log.clone().into()).collect();
+                        let message: String =
+                            serde_json::to_string(&summary_logs).unwrap();
+
+                        let _: () = conn
+                            .xadd("ASSETS_INDEXER_STREAM", "*", &[("message", &message)])
+                            .await
+                            .expect("Error sending message");
                     }
                 }));
 
