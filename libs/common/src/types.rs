@@ -26,15 +26,13 @@ impl From<Log> for SummaryLog {
             transaction_hash: log
                 .transaction_hash
                 .map_or_else(|| None, |h| Some(h.to_string())),
-            transaction_index: log
-                .transaction_index
-                .map_or(None, |index| Some(index.as_u64())),
+            transaction_index: log.transaction_index.map(|index| index.as_u64()),
             topics: log
                 .topics
                 .into_iter()
                 .map(|topic| topic.to_string())
                 .collect(),
-            log_index: log.log_index.map_or(None, |index| Some(index.to_string())),
+            log_index: log.log_index.map(|index| index.to_string()),
         }
     }
 }
