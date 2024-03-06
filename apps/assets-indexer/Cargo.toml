@@ -13,4 +13,4 @@ redis = { version = "0.24.0", features = [
 ] }
 tokio = { version = "1.36.0", features = ["full"] }
 common = { path = "../../libs/common" }
-
+clap = "4.5.2"

@@ -1,4 +1,5 @@
 use clap::Parser;
+use common::types::{DbConfig, RedisConfig};
 use hashbrown::HashMap;
 use once_cell::sync::Lazy;
 
@@ -28,9 +29,9 @@ pub struct ChainWatcherArgs {
     )]
     pub rpcs: String,
     #[arg(long, help = "Block number to start syncing from. [optional]")]
-    pub start_block: Option<u32>,
+    pub start_block: Option<u64>,
     #[arg(long, help = "Block number to end syncing at. [optional]")]
-    pub end_block: Option<u32>,
+    pub end_block: Option<u64>,
     #[arg(long, help = "Redis host value.", default_value = "127.0.0.1")]
     pub redis_host: String,
     #[arg(long, help = "Redis port value.", default_value = "6379")]
@@ -72,21 +73,6 @@ pub struct ChainConfig {
     pub id: u32,
     pub name: String,
 }
-#[derive(Debug, Clone)]
-pub struct DbConfig {
-    pub host: String,
-    pub port: u16,
-    pub username: String,
-    pub password: Option<String>,
-    pub db_name: String,
-}
-#[derive(Debug, Clone)]
-pub struct RedisConfig {
-    pub host: String,
-    pub port: u16,
-    pub password: Option<String>,
-    pub db: usize,
-}
 
 #[derive(Debug, Clone)]
 pub struct Config {
@@ -94,8 +80,8 @@ pub struct Config {
     pub chain: ChainConfig,
     pub db_config: DbConfig,
     pub redis_config: RedisConfig,
-    pub start_block: Option<u32>,
-    pub end_block: Option<u32>,
+    pub start_block: Option<u64>,
+    pub end_block: Option<u64>,
     pub rpcs: Vec<String>,
 }
 

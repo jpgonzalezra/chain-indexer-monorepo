@@ -1,10 +1,12 @@
-use std::{env, time::Duration};
+pub mod config;
 
 use common::redis::redis_client_factory;
+use config::Config;
 use redis::{
     streams::{StreamReadOptions, StreamReadReply},
     AsyncCommands, RedisResult,
 };
+use std::time::Duration;
 use tokio::time::sleep;
 
 async fn ensure_stream_and_group_exist(
@@ -38,11 +40,20 @@ async fn ensure_stream_and_group_exist(
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let mut redis_conn = redis_client_factory()
-        .expect("Error on acquiring redis client")
-        .get_async_connection()
-        .await
-        .expect("Error on acquiring redis connection");
+    let config = Config::new();
+
+    let redis_config = config.redis_config;
+
+    let mut redis_conn = redis_client_factory(
+        redis_config.host,
+        redis_config.port,
+        redis_config.password,
+        redis_config.db,
+    )
+    .expect("Error on acquiring redis client")
+    .get_async_connection()
+    .await
+    .expect("Error on acquiring redis connection");
 
     ensure_stream_and_group_exist(
         &mut redis_conn,
@@ -51,8 +62,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     )
     .await?;
 
-    let consumer_name: String = env::var("CONSUMER_NAME").unwrap();
-    let opts = StreamReadOptions::default().group("ASSETS_INDEXER_GROUP", consumer_name);
+    let consumer_name: String = config.indexer_name;
+    let opts: StreamReadOptions =
+        StreamReadOptions::default().group("ASSETS_INDEXER_GROUP", consumer_name);
 
     let stream_key = "ASSETS_INDEXER_STREAM";
 
@@ -72,6 +84,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             Err(e) => println!("Error reading from stream: {}", e),
         }
 
-        sleep(Duration::from_millis(1)).await;
+        sleep(Duration::from_millis(10)).await;
     }
 }

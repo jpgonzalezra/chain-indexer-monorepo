@@ -79,3 +79,20 @@ impl From<Transaction> for SummaryTransaction {
         }
     }
 }
+
+#[derive(Debug, Clone)]
+pub struct DbConfig {
+    pub host: String,
+    pub port: u16,
+    pub username: String,
+    pub password: Option<String>,
+    pub db_name: String,
+}
+
+#[derive(Debug, Clone)]
+pub struct RedisConfig {
+    pub host: String,
+    pub port: u16,
+    pub password: Option<String>,
+    pub db: usize,
+}
