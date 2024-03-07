@@ -20,3 +20,4 @@ Cargo.lock
 
 .env
 .vscode/launch.json
+.vscode/tasks.json
