@@ -23,11 +23,8 @@ pub struct ChainWatcherArgs {
     pub chain_id: usize,
     #[arg(long, help = "Enables debug logging.", default_value_t = false)]
     pub debug: bool,
-    #[arg(
-        long,
-        help = "Comma-separated list of RPC URLs to use for fetching blocks."
-    )]
-    pub rpcs: String,
+    #[arg(long, help = "RPC URL to use for fetching blocks.")]
+    pub rpc: String,
     #[arg(long, help = "Block number to start syncing from. [optional]")]
     pub start_block: Option<u64>,
     #[arg(long, help = "Block number to end syncing at. [optional]")]
@@ -82,7 +79,8 @@ pub struct Config {
     pub redis_config: RedisConfig,
     pub start_block: Option<u64>,
     pub end_block: Option<u64>,
-    pub rpcs: Vec<String>,
+    pub rpc: String,
+    pub num_workers: usize,
 }
 
 impl Default for Config {
@@ -98,7 +96,7 @@ impl Config {
         let chain = get_chain(args.chain_id)
             .expect("Default chain error.")
             .clone();
-        let rpcs: Vec<String> = args.rpcs.split(',').map(|rpc| rpc.to_string()).collect();
+        let rpc: String = args.rpc;
 
         Self {
             tx_batch_size: args.tx_batch_size,
@@ -118,7 +116,8 @@ impl Config {
             },
             start_block: args.start_block,
             end_block: args.end_block,
-            rpcs,
+            rpc,
+            num_workers: num_cpus::get(),
         }
     }
 }
