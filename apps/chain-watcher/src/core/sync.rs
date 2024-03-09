@@ -1,11 +1,11 @@
 use std::sync::Arc;
 
 use bb8::Pool;
+use bb8_redis::redis::AsyncCommands;
 use bb8_redis::RedisConnectionManager;
 use common::{redis::redis_pool_factory, types::SummaryLog};
 use ethers::providers::{Http, Middleware, Provider};
 use futures::stream::{FuturesUnordered, StreamExt};
-use redis::AsyncCommands;
 use tokio::task;
 
 use crate::config::Config;
