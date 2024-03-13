@@ -1,5 +1,8 @@
 use async_trait::async_trait;
-use ethers::abi::{ethabi, ParamType};
+use ethers::{
+    abi::{ethabi, ParamType},
+    utils::hex,
+};
 
 use super::event_processor::{EventProcessor, EventProcessorRequest};
 
@@ -19,14 +22,16 @@ impl EventProcessor for Erc721TransferProcessor {
         if event.topic1.is_none() || event.topic2.is_none() || event.topic3.is_none() {
             return false;
         }
-        let transfer_data = ethabi::decode(
-            &[ParamType::Uint(256), ParamType::Uint(256)],
-            &event.data[..],
-        )
-        .unwrap();
+
+        let data = hex::decode(&event.data[2..]).unwrap();
+
+        let transfer_data =
+            ethabi::decode(&[ParamType::Uint(256), ParamType::Uint(256)], &data[..])
+                .unwrap();
 
         let id = transfer_data[0].clone().into_uint().unwrap();
         let amount = transfer_data[1].clone().into_uint().unwrap();
+        println!("{:?}, {:?}", id, amount);
 
         return true;
     }
