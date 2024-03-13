@@ -1,15 +1,17 @@
 use async_trait::async_trait;
-use common::types::SummaryLog;
 
 #[async_trait]
 pub trait EventProcessor {
-    async fn process(&self, log: &SummaryLog) -> bool;
+    async fn process(&self, event: &EventProcessorRequest) -> bool;
 }
 
 pub struct EventProcessorRequest {
     pub address: String,
     pub data: String,
-    pub topics: Vec<String>,
+    pub topic0: String,
+    pub topic1: Option<String>,
+    pub topic2: Option<String>,
+    pub topic3: Option<String>,
 }
 
 pub struct EventProcessorService {
@@ -27,9 +29,9 @@ impl EventProcessorService {
         self.processors.push(processor);
     }
 
-    pub async fn process(&self, log: &SummaryLog) -> bool {
+    pub async fn process(&self, event: &EventProcessorRequest) -> bool {
         for processor in &self.processors {
-            if processor.process(log).await {
+            if processor.process(event).await {
                 return true;
             }
         }
