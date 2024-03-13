@@ -1,13 +1,18 @@
 pub mod config;
+pub mod services;
 
-use common::redis::redis_client_factory;
+use common::{redis::redis_client_factory, types::SummaryLog};
 use config::Config;
 use redis::{
     streams::{StreamReadOptions, StreamReadReply},
-    AsyncCommands, RedisResult,
+    AsyncCommands, RedisResult, Value,
 };
-use std::time::Duration;
-use tokio::time::sleep;
+use services::proccesors::{
+    erc1155_transfer_batch_event_processor::Erc1155TransferBatchProcessor,
+    erc1155_transfer_single_event_processor::Erc1155TransferSingleProcessor,
+    erc721_transfer_event_processor::Erc721TransferProcessor,
+    event_processor::{EventProcessorRequest, EventProcessorService},
+};
 
 async fn ensure_stream_and_group_exist(
     conn: &mut redis::aio::Connection,
@@ -55,6 +60,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     .await
     .expect("Error on acquiring redis connection");
 
+    let mut processor = EventProcessorService::new();
+    processor.add_processor(Box::new(Erc721TransferProcessor));
+    processor.add_processor(Box::new(Erc1155TransferSingleProcessor));
+    processor.add_processor(Box::new(Erc1155TransferBatchProcessor));
+
     ensure_stream_and_group_exist(
         &mut redis_conn,
         "ASSETS_INDEXER_STREAM",
@@ -76,14 +86,35 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             Ok(reply) => {
                 for stream in reply.keys {
                     for message in stream.ids {
-                        println!("ID: {}, Values: {:?}", message.id, message.map);
-                        println!("-----");
+                        if let Some(Value::Data(bytes)) = message.map.get("message") {
+                            let json_data =
+                                String::from_utf8(bytes.clone()).unwrap_or_default();
+
+                            let logs: Vec<SummaryLog> = serde_json::from_str(&json_data)?;
+                            for log in logs {
+                                let address = log.address;
+                                println!("{:?}", address);
+                                let data = log.data;
+                                let topics = log.topics;
+                                processor
+                                    .process(&EventProcessorRequest {
+                                        address,
+                                        data,
+                                        topic0: topics
+                                            .first()
+                                            .cloned()
+                                            .unwrap_or_default(),
+                                        topic1: topics.get(1).cloned(),
+                                        topic2: topics.get(2).cloned(),
+                                        topic3: topics.get(3).cloned(),
+                                    })
+                                    .await;
+                            }
+                        }
                     }
                 }
             }
             Err(e) => println!("Error reading from stream: {}", e),
         }
-
-        sleep(Duration::from_millis(10)).await;
     }
 }
