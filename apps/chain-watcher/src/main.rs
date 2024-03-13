@@ -5,18 +5,17 @@ pub mod services;
 use std::sync::Arc;
 
 use clients::{blockchain_client::BlockchainClient, redis_client::RedisClient};
-use common::{database::Database, redis::redis_pool_factory};
+use common::redis::redis_pool_factory;
 use config::Config;
 use ethers::providers::{Http, Provider};
+use services::repositories::block::{BlockRepository, BlockRepositoryTrait};
+use sqlx::postgres::PgPoolOptions;
 
 use crate::services::sync::ChainSynchronizer;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let config: Config = Config::new();
-    let database = Database::new(&config.db_config)
-        .await
-        .expect("Database connection error.");
 
     let redis_config = config.clone().redis_config;
     let redis_pool = redis_pool_factory(
@@ -31,6 +30,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let http_provider = Provider::<Http>::try_from(&config.rpc)
         .expect("Error on provider http creation.");
 
+    let database_url = format!(
+        "postgres://{}:{}@{}:{}/{}",
+        config.db_config.username,
+        config.db_config.password.as_deref().unwrap_or(""),
+        config.db_config.host,
+        config.db_config.port,
+        config.db_config.db_name
+    );
+
+    let database_pool = PgPoolOptions::new().connect(&database_url).await?;
+    let block_repository =
+        BlockRepository::new(Arc::new(database_pool), config.chain.clone());
+
     let synchronizer = ChainSynchronizer::new(
         BlockchainClient {
             provider: Arc::new(http_provider),
@@ -38,10 +50,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         RedisClient {
             pool: Arc::new(redis_pool),
         },
+        block_repository,
         config,
     );
 
     let mut start_block = synchronizer.start_block();
+
+    let missing_blocks = synchronizer.missing_blocks().await?;
+    synchronizer.sync_missing_blocks(missing_blocks).await;
+
     loop {
         let end_block = synchronizer.end_block().await?;
 
