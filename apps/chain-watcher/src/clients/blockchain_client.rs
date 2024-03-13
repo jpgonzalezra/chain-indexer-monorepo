@@ -16,7 +16,7 @@ pub trait BlockchainClientTrait: Clone + Send + Sync + 'static {
         &self,
         tx_hash: H256,
     ) -> Result<Option<TransactionReceipt>, ProviderError>;
-    async fn get_block_number(&self) -> Result<U64, ProviderError>;
+    async fn get_block_number(&self) -> Result<u64, ProviderError>;
 }
 
 #[derive(Clone)]
@@ -40,7 +40,8 @@ impl BlockchainClientTrait for BlockchainClient {
         self.provider.clone().get_transaction_receipt(tx_hash).await
     }
 
-    async fn get_block_number(&self) -> Result<U64, ProviderError> {
-        self.provider.clone().get_block_number().await
+    async fn get_block_number(&self) -> Result<u64, ProviderError> {
+        let result = self.provider.clone().get_block_number().await?;
+        Ok(result.as_u64())
     }
 }
