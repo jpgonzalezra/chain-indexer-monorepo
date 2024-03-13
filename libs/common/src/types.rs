@@ -18,19 +18,19 @@ pub struct SummaryLog {
 impl From<Log> for SummaryLog {
     fn from(log: Log) -> Self {
         SummaryLog {
-            address: log.address.to_string(),
-            data: log.data.to_string(),
+            address: format!("0x{}", hex::encode(log.address)),
+            data: format!("0x{}", hex::encode(log.data)),
             block_number: log
                 .block_number
                 .map_or_else(|| 0, |block_number| block_number.as_u64()),
             transaction_hash: log
                 .transaction_hash
-                .map_or_else(|| None, |h| Some(h.to_string())),
+                .map_or_else(|| None, |h| Some(format!("0x{}", hex::encode(h)))),
             transaction_index: log.transaction_index.map(|index| index.as_u64()),
             topics: log
                 .topics
                 .into_iter()
-                .map(|topic| topic.to_string())
+                .map(|topic| format!("0x{}", hex::encode(topic)))
                 .collect(),
             log_index: log.log_index.map(|index| index.to_string()),
         }
