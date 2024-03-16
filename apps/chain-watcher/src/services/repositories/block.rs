@@ -5,6 +5,19 @@ use sqlx::{FromRow, PgPool};
 
 use crate::config::ChainConfig;
 
+pub enum Bind {
+    BIGINT(i64),
+    INT(i32),
+    STRING(String),
+}
+
+#[derive(Debug)]
+pub struct Block {
+    pub block_number: u64,
+    pub hash: String,
+    pub chain_id: u32,
+}
+
 #[derive(Debug, FromRow)]
 pub struct BlockNumber {
     number_block: i64,
@@ -14,6 +27,7 @@ pub struct BlockNumber {
 pub trait BlockRepositoryTrait: Clone + Send + Sync + 'static {
     fn new(database_pool: Arc<PgPool>, chain_config: ChainConfig) -> Self;
     async fn get_indexed_blocks(&self) -> Result<Vec<u64>, sqlx::Error>;
+    async fn insert_blocks_bulk(&self, blocks: &[Block]) -> Result<(), sqlx::Error>;
 }
 
 #[derive(Clone)]
@@ -44,5 +58,47 @@ impl BlockRepositoryTrait for BlockRepository {
         .collect();
 
         Ok(result)
+    }
+
+    async fn insert_blocks_bulk(&self, blocks: &[Block]) -> Result<(), sqlx::Error> {
+        if blocks.is_empty() {
+            return Ok(());
+        }
+
+        let mut query =
+            String::from("INSERT INTO Block (block_number, hash, chain_id) VALUES ");
+
+        let mut binds: Vec<Bind> = vec![];
+        for (index, block) in blocks.iter().enumerate() {
+            if index > 0 {
+                query.push_str(", ");
+            }
+            let placeholder_index = index * 3 + 1;
+            query.push_str(&format!(
+                "(${}, ${}, ${})",
+                placeholder_index,
+                placeholder_index + 1,
+                placeholder_index + 2
+            ));
+            binds.push(Bind::BIGINT(block.block_number as i64));
+            binds.push(Bind::STRING(block.hash.to_string()));
+            binds.push(Bind::INT(block.chain_id as i32));
+        }
+
+        query.push_str(" ON CONFLICT (block_number) DO NOTHING");
+
+        let mut query_builder = sqlx::query(&query);
+
+        for bind in binds.iter() {
+            match bind {
+                Bind::BIGINT(i64_data) => query_builder = query_builder.bind(i64_data),
+                Bind::INT(i32_data) => query_builder = query_builder.bind(i32_data),
+                Bind::STRING(string) => query_builder = query_builder.bind(string),
+            }
+        }
+
+        query_builder.execute(&*self.database_pool).await?;
+
+        Ok(())
     }
 }

@@ -3,7 +3,7 @@ use std::sync::Arc;
 use async_trait::async_trait;
 use ethers::{
     providers::{Http, Middleware, Provider, ProviderError},
-    types::{Block, Transaction, TransactionReceipt, H256, U64},
+    types::{Block, Transaction, TransactionReceipt, H256},
 };
 
 #[async_trait]
