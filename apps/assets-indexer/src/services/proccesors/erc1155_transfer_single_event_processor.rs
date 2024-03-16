@@ -29,6 +29,7 @@ impl EventProcessor for Erc1155TransferSingleProcessor {
 
         let id = transfer_data[0].clone().into_uint().unwrap();
         let amount = transfer_data[1].clone().into_uint().unwrap();
+        println!("{:?}, {:?}", id, amount);
         return true;
     }
 }

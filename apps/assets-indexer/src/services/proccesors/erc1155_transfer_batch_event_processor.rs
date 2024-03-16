@@ -49,6 +49,7 @@ impl EventProcessor for Erc1155TransferBatchProcessor {
             .iter()
             .map(|token| token.clone().into_uint().unwrap())
             .collect();
+        println!("{:?}, {:?}", ids, amounts);
 
         return true;
     }
