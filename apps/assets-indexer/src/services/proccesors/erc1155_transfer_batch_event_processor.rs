@@ -24,16 +24,38 @@ impl EventProcessor for Erc1155TransferBatchProcessor {
             return false;
         }
 
-        let data = hex::decode(&event.data[2..]).unwrap();
+        let data = match hex::decode(&event.data[2..]) {
+            Ok(decoded) => decoded,
+            Err(e) => {
+                eprintln!("Error decoding event data: {:?}", e);
+                Vec::new()
+            }
+        };
 
-        let transfer_values = ethabi::decode(
+        if data.is_empty() {
+            return false;
+        }
+
+        let transfer_values = match ethabi::decode(
             &[
                 ParamType::Array(Box::new(ParamType::Uint(256))),
                 ParamType::Array(Box::new(ParamType::Uint(256))),
             ],
             &data[..],
-        )
-        .unwrap();
+        ) {
+            Ok(decoded) => decoded,
+            Err(e) => {
+                eprintln!(
+                    "Error decoding ABI data: {:?}, error message: {:?}",
+                    data, e
+                );
+                Vec::new()
+            }
+        };
+
+        if transfer_values.is_empty() {
+            return false;
+        }
 
         let ids: Vec<U256> = transfer_values[0]
             .clone()

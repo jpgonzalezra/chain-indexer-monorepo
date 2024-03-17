@@ -21,14 +21,38 @@ impl EventProcessor for Erc1155TransferSingleProcessor {
             return false;
         }
 
-        let data = hex::decode(&event.data[2..]).unwrap();
+        let data = match hex::decode(&event.data[2..]) {
+            Ok(decoded) => decoded,
+            Err(e) => {
+                eprintln!("Error decoding event data: {:?}", e);
+                Vec::new()
+            }
+        };
 
-        let transfer_data =
-            ethabi::decode(&[ParamType::Uint(256), ParamType::Uint(256)], &data[..])
-                .unwrap();
+        if data.is_empty() {
+            return false;
+        }
 
-        let id = transfer_data[0].clone().into_uint().unwrap();
-        let amount = transfer_data[1].clone().into_uint().unwrap();
+        let transfer_values = match ethabi::decode(
+            &[ParamType::Uint(256), ParamType::Uint(256)],
+            &data[..],
+        ) {
+            Ok(decoded) => decoded,
+            Err(e) => {
+                eprintln!(
+                    "Error decoding ABI data: {:?}, error message: {:?}",
+                    data, e
+                );
+                Vec::new()
+            }
+        };
+
+        if transfer_values.is_empty() {
+            return false;
+        }
+
+        let id = transfer_values[0].clone().into_uint().unwrap();
+        let amount = transfer_values[1].clone().into_uint().unwrap();
         println!("{:?}, {:?}", id, amount);
         return true;
     }
