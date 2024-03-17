@@ -17,10 +17,16 @@ pub struct ChainWatcherArgs {
     pub tx_batch_size: usize,
     #[arg(
         long,
-        help = "Specifies the number of transactions to be saved in a single batch operation to the database.",
+        help = "Specifies the number of transactions to be saved in a single batch operation to the database. [optional]",
         default_value_t = 3
     )]
     pub db_trans_batch_size: usize,
+    #[arg(
+        long,
+        help = "Enables resetting the blockchain state to restart indexing from the beginning. Use this flag to clear existing data and re-initialize the index. [optional]",
+        default_value_t = false
+    )]
+    pub reset: bool,
     #[arg(
         long,
         help = "Chain ID number to synchronize with.",
@@ -87,6 +93,7 @@ pub struct Config {
     pub end_block: Option<u64>,
     pub rpc: String,
     pub num_workers: usize,
+    pub reset: bool,
 }
 
 impl Default for Config {
@@ -125,6 +132,7 @@ impl Config {
             end_block: args.end_block,
             rpc,
             num_workers: num_cpus::get(),
+            reset: args.reset,
         }
     }
 }

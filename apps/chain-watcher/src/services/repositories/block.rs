@@ -26,6 +26,7 @@ pub struct BlockNumber {
 #[async_trait]
 pub trait BlockRepositoryTrait: Clone + Send + Sync + 'static {
     fn new(database_pool: Arc<PgPool>, chain_config: ChainConfig) -> Self;
+    async fn reset(&self) -> Result<(), sqlx::Error>;
     async fn get_indexed_blocks(&self) -> Result<Vec<u64>, sqlx::Error>;
     async fn insert_blocks_bulk(&self, blocks: &[Block]) -> Result<(), sqlx::Error>;
 }
@@ -43,6 +44,15 @@ impl BlockRepositoryTrait for BlockRepository {
             database_pool,
             chain_config,
         }
+    }
+
+    async fn reset(&self) -> Result<(), sqlx::Error> {
+        let pool = self.database_pool.clone();
+        _ = sqlx::query("DELETE FROM Block WHERE chain_id = $1")
+            .bind(self.chain_config.id as i32)
+            .fetch_all(&*pool)
+            .await?;
+        Ok(())
     }
 
     async fn get_indexed_blocks(&self) -> Result<Vec<u64>, sqlx::Error> {

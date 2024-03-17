@@ -42,6 +42,10 @@ impl<B: BlockchainClientTrait, R: RedisClientTrait, E: BlockRepositoryTrait>
         }
     }
 
+    pub async fn reset(&self) -> Result<(), sqlx::Error> {
+        self.block_repository.reset().await
+    }
+
     pub async fn sync_missing_blocks(&self, blocks: Vec<u64>) {
         self.process_blocks(blocks.into_iter()).await;
     }

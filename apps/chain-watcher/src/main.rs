@@ -51,8 +51,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             pool: Arc::new(redis_pool),
         },
         block_repository,
-        config,
+        config.clone(),
     );
+
+    if config.reset {
+        synchronizer.reset().await?
+    }
 
     let mut start_block = synchronizer.start_block();
 
