@@ -9,6 +9,12 @@ use common::types::{DbConfig, RedisConfig};
 pub struct AssetsIndexerArgs {
     #[arg(long, help = "Indexer client name.")]
     pub indexer_name: String,
+    #[arg(
+        long,
+        help = "Specifies the number of transactions to be saved in a single batch operation to the database.",
+        default_value_t = 1
+    )]
+    pub db_trans_batch_size: usize,
     #[arg(long, help = "Redis host value.", default_value = "127.0.0.1")]
     pub redis_host: String,
     #[arg(long, help = "Redis port value.", default_value = "6379")]
@@ -54,6 +60,7 @@ impl Config {
                 password: args.db_password,
                 db_name: args.db_name,
                 username: args.db_username,
+                db_trans_batch_size: args.db_trans_batch_size,
             },
             redis_config: RedisConfig {
                 host: args.redis_host,
