@@ -67,9 +67,11 @@ impl<B: BlockchainClientTrait, R: RedisClientTrait, E: BlockRepositoryTrait>
                     chain_id: self.config.chain.id,
                 });
 
-                if blocks_batch.len() == 3 {
-                    // FIX: use CONFIG
-                    println!("Insert {} processed index blocks into the db", 3);
+                if blocks_batch.len() == self.config.db_config.db_trans_batch_size {
+                    println!(
+                        "Insert {} processed index blocks into the db",
+                        self.config.db_config.db_trans_batch_size
+                    );
                     match self
                         .block_repository
                         .insert_blocks_bulk(&blocks_batch)
@@ -131,11 +133,13 @@ impl<B: BlockchainClientTrait, R: RedisClientTrait, E: BlockRepositoryTrait>
     }
 
     pub async fn missing_blocks(&self) -> Result<Vec<u64>, sqlx::Error> {
-        let indexed_blocks = self
-            .block_repository
-            .get_indexed_blocks()
-            .await
-            .unwrap_or(Vec::new());
+        let indexed_blocks = match self.block_repository.get_indexed_blocks().await {
+            Ok(result) => result,
+            Err(err) => {
+                println!("Error on retrieve missing block operation: {}.", err);
+                Vec::new()
+            }
+        };
 
         if indexed_blocks.is_empty() {
             return Ok(Vec::new());

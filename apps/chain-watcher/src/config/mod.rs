@@ -17,6 +17,12 @@ pub struct ChainWatcherArgs {
     pub tx_batch_size: usize,
     #[arg(
         long,
+        help = "Specifies the number of transactions to be saved in a single batch operation to the database.",
+        default_value_t = 3
+    )]
+    pub db_trans_batch_size: usize,
+    #[arg(
+        long,
         help = "Chain ID number to synchronize with.",
         default_value_t = 1
     )]
@@ -107,6 +113,7 @@ impl Config {
                 password: args.db_password,
                 db_name: args.db_name,
                 username: args.db_username,
+                db_trans_batch_size: args.db_trans_batch_size,
             },
             redis_config: RedisConfig {
                 host: args.redis_host,
