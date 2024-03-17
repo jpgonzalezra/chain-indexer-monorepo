@@ -20,7 +20,7 @@ pub struct Block {
 
 #[derive(Debug, FromRow)]
 pub struct BlockNumber {
-    number_block: i64,
+    block_number: i64,
 }
 
 #[async_trait]
@@ -48,13 +48,13 @@ impl BlockRepositoryTrait for BlockRepository {
     async fn get_indexed_blocks(&self) -> Result<Vec<u64>, sqlx::Error> {
         let pool = self.database_pool.clone();
         let result = sqlx::query_as::<_, BlockNumber>(
-            "SELECT number_block FROM Block WHERE chain_id = $1",
+            "SELECT block_number FROM Block WHERE chain_id = $1",
         )
         .bind(self.chain_config.id as i32)
         .fetch_all(&*pool)
         .await?
         .into_iter()
-        .map(|record| record.number_block as u64)
+        .map(|record| record.block_number as u64)
         .collect();
 
         Ok(result)
