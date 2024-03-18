@@ -13,7 +13,7 @@ impl Erc1155TransferSingleProcessor {
 }
 #[async_trait]
 impl EventProcessor for Erc1155TransferSingleProcessor {
-    async fn process(&self, event: &EventProcessorRequest) -> bool {
+    async fn store_if_apply(&self, event: &EventProcessorRequest) -> bool {
         if event.topic0.to_lowercase() != Self::ERC1155_TRANSFER_SINGLE_EVENT_SIGNATURE {
             return false;
         }

@@ -2,7 +2,7 @@ use async_trait::async_trait;
 
 #[async_trait]
 pub trait EventProcessor {
-    async fn process(&self, event: &EventProcessorRequest) -> bool;
+    async fn store_if_apply(&self, event: &EventProcessorRequest) -> bool;
 }
 
 pub struct EventProcessorRequest {
@@ -29,13 +29,10 @@ impl EventProcessorService {
         self.processors.push(processor);
     }
 
-    pub async fn process(&self, event: &EventProcessorRequest) -> bool {
+    pub async fn process_and_store_if_apply(&self, event: &EventProcessorRequest) {
         for processor in &self.processors {
-            if processor.process(event).await {
-                return true;
-            }
+            processor.store_if_apply(event).await;
         }
-        false
     }
 }
 

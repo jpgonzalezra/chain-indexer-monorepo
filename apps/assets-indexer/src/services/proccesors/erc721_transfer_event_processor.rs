@@ -4,9 +4,13 @@ use ethers::{
     utils::hex,
 };
 
+use crate::services::repositories::erc721_transfer::Erc721StoreTransfer;
+
 use super::event_processor::{EventProcessor, EventProcessorRequest};
 
-pub struct Erc721TransferProcessor;
+pub struct Erc721TransferProcessor {
+    pub store_transfer: Erc721StoreTransfer,
+}
 
 impl Erc721TransferProcessor {
     const TRANSFER_TOPIC: &'static str =
@@ -15,7 +19,7 @@ impl Erc721TransferProcessor {
 
 #[async_trait]
 impl EventProcessor for Erc721TransferProcessor {
-    async fn process(&self, event: &EventProcessorRequest) -> bool {
+    async fn store_if_apply(&self, event: &EventProcessorRequest) -> bool {
         if event.topic0.to_lowercase() != Self::TRANSFER_TOPIC {
             return false;
         }

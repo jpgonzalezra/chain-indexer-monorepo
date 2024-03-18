@@ -16,7 +16,7 @@ impl Erc1155TransferBatchProcessor {
 
 #[async_trait]
 impl EventProcessor for Erc1155TransferBatchProcessor {
-    async fn process(&self, event: &EventProcessorRequest) -> bool {
+    async fn store_if_apply(&self, event: &EventProcessorRequest) -> bool {
         if event.topic0.to_lowercase() != Self::ERC1155_TRANSFER_BATCH_EVENT_SIGNATURE {
             return false;
         }
