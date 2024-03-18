@@ -1,18 +1,24 @@
 pub mod config;
 pub mod services;
 
+use std::sync::Arc;
+
 use common::{redis::redis_client_factory, types::SummaryLog};
 use config::Config;
 use redis::{
     streams::{StreamReadOptions, StreamReadReply},
     AsyncCommands, RedisResult, Value,
 };
-use services::proccesors::{
-    erc1155_transfer_batch_event_processor::Erc1155TransferBatchProcessor,
-    erc1155_transfer_single_event_processor::Erc1155TransferSingleProcessor,
-    erc721_transfer_event_processor::Erc721TransferProcessor,
-    event_processor::{EventProcessorRequest, EventProcessorService},
+use services::{
+    proccesors::{
+        erc1155_transfer_batch_event_processor::Erc1155TransferBatchProcessor,
+        erc1155_transfer_single_event_processor::Erc1155TransferSingleProcessor,
+        erc721_transfer_event_processor::Erc721TransferProcessor,
+        event_processor::{EventProcessorRequest, EventProcessorService},
+    },
+    repositories::erc721_transfer::Erc721StoreTransfer,
 };
+use sqlx::postgres::PgPoolOptions;
 
 async fn ensure_stream_and_group_exist(
     conn: &mut redis::aio::Connection,
@@ -60,8 +66,22 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     .await
     .expect("Error on acquiring redis connection");
 
+    let database_url = format!(
+        "postgres://{}:{}@{}:{}/{}",
+        config.db_config.username,
+        config.db_config.password.as_deref().unwrap_or(""),
+        config.db_config.host,
+        config.db_config.port,
+        config.db_config.db_name
+    );
+
+    let database_pool = PgPoolOptions::new().connect(&database_url).await?;
+
     let mut processor = EventProcessorService::new();
-    processor.add_processor(Box::new(Erc721TransferProcessor));
+    processor.add_processor(Box::new(Erc721TransferProcessor {
+        store_transfer: Erc721StoreTransfer::new(Arc::new(database_pool), config.chain)
+            .await?,
+    }));
     processor.add_processor(Box::new(Erc1155TransferSingleProcessor));
     processor.add_processor(Box::new(Erc1155TransferBatchProcessor));
 
@@ -97,7 +117,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                                 let data = log.data;
                                 let topics = log.topics;
                                 processor
-                                    .process(&EventProcessorRequest {
+                                    .process_and_store_if_apply(&EventProcessorRequest {
                                         address,
                                         data,
                                         topic0: topics
