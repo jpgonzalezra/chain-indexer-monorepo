@@ -1,5 +1,8 @@
+use std::collections::HashMap;
+
 use clap::Parser;
-use common::types::{DbConfig, RedisConfig};
+use common::types::{ChainConfig, DbConfig, RedisConfig};
+use once_cell::sync::Lazy;
 
 #[derive(Parser, Debug)]
 #[command(
@@ -16,6 +19,12 @@ pub struct AssetsIndexerArgs {
     )]
     pub db_trans_batch_size: usize,
     #[arg(long, help = "Redis host value.", default_value = "127.0.0.1")]
+    #[arg(
+        long,
+        help = "Chain ID number to synchronize with.",
+        default_value_t = 1
+    )]
+    pub chain_id: usize,
     pub redis_host: String,
     #[arg(long, help = "Redis port value.", default_value = "6379")]
     pub redis_port: u16,
@@ -35,9 +44,22 @@ pub struct AssetsIndexerArgs {
     pub db_name: String,
 }
 
+static CHAIN_CONFIGS: Lazy<HashMap<usize, ChainConfig>> = Lazy::new(|| {
+    let mut m = HashMap::new();
+    m.insert(
+        1,
+        ChainConfig {
+            id: 1,
+            name: "Ethereum".to_string(),
+        },
+    );
+    m
+});
+
 #[derive(Debug, Clone)]
 pub struct Config {
     pub indexer_name: String,
+    pub chain: ChainConfig,
     pub db_config: DbConfig,
     pub redis_config: RedisConfig,
 }
@@ -51,9 +73,13 @@ impl Default for Config {
 impl Config {
     pub fn new() -> Self {
         let args = AssetsIndexerArgs::parse();
-
+        let chain = CHAIN_CONFIGS
+            .get(&args.chain_id)
+            .expect("Default chain error.")
+            .clone();
         Self {
             indexer_name: args.indexer_name,
+            chain,
             db_config: DbConfig {
                 host: args.db_host,
                 port: args.db_port,
