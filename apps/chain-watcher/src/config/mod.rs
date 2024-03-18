@@ -1,5 +1,5 @@
 use clap::Parser;
-use common::types::{DbConfig, RedisConfig};
+use common::types::{ChainConfig, DbConfig, RedisConfig};
 use hashbrown::HashMap;
 use once_cell::sync::Lazy;
 
@@ -73,16 +73,6 @@ static CHAIN_CONFIGS: Lazy<HashMap<usize, ChainConfig>> = Lazy::new(|| {
     m
 });
 
-pub fn get_chain(id: usize) -> Option<&'static ChainConfig> {
-    CHAIN_CONFIGS.get(&id)
-}
-
-#[derive(Debug, Clone)]
-pub struct ChainConfig {
-    pub id: u32,
-    pub name: String,
-}
-
 #[derive(Debug, Clone)]
 pub struct Config {
     pub tx_batch_size: usize,
@@ -106,7 +96,8 @@ impl Config {
     pub fn new() -> Self {
         let args = ChainWatcherArgs::parse();
 
-        let chain = get_chain(args.chain_id)
+        let chain = CHAIN_CONFIGS
+            .get(&args.chain_id)
             .expect("Default chain error.")
             .clone();
         let rpc: String = args.rpc;

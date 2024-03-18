@@ -95,3 +95,9 @@ pub struct RedisConfig {
     pub password: Option<String>,
     pub db: usize,
 }
+
+#[derive(Debug, Clone)]
+pub struct ChainConfig {
+    pub id: u32,
+    pub name: String,
+}

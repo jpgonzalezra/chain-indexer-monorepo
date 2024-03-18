@@ -1,9 +1,8 @@
 use std::sync::Arc;
 
 use async_trait::async_trait;
+use common::types::ChainConfig;
 use sqlx::{FromRow, PgPool};
-
-use crate::config::ChainConfig;
 
 pub enum Bind {
     BIGINT(i64),
@@ -48,7 +47,7 @@ impl BlockRepositoryTrait for BlockRepository {
 
     async fn reset(&self) -> Result<(), sqlx::Error> {
         let pool = self.database_pool.clone();
-        _ = sqlx::query("DELETE FROM Block WHERE chain_id = $1")
+        _ = sqlx::query("DELETE FROM block WHERE chain_id = $1")
             .bind(self.chain_config.id as i32)
             .fetch_all(&*pool)
             .await?;
@@ -58,7 +57,7 @@ impl BlockRepositoryTrait for BlockRepository {
     async fn get_indexed_blocks(&self) -> Result<Vec<u64>, sqlx::Error> {
         let pool = self.database_pool.clone();
         let result = sqlx::query_as::<_, BlockNumber>(
-            "SELECT block_number FROM Block WHERE chain_id = $1",
+            "SELECT block_number FROM block WHERE chain_id = $1",
         )
         .bind(self.chain_config.id as i32)
         .fetch_all(&*pool)
@@ -76,7 +75,7 @@ impl BlockRepositoryTrait for BlockRepository {
         }
 
         let mut query =
-            String::from("INSERT INTO Block (block_number, hash, chain_id) VALUES ");
+            String::from("INSERT INTO block (block_number, hash, chain_id) VALUES ");
 
         let mut binds: Vec<Bind> = vec![];
         for (index, block) in blocks.iter().enumerate() {
