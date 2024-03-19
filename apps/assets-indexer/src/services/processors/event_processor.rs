@@ -44,6 +44,8 @@ pub trait EventProcessor {
 
 #[derive(Debug)]
 pub struct EventProcessorRequest {
+    pub hash: String,
+    pub index: u64,
     pub address: String,
     pub data: String,
     pub chain_id: u32,
@@ -79,7 +81,7 @@ impl EventProcessorService {
                     // no-op
                 }
                 Err(e) => {
-                    eprintln!("Error processing event: {:?}", e);
+                    eprintln!("Error processing event: {:?}, transaction hash: {:?}, index: {:?}", e, event.hash, event.index);
                 }
             }
         }

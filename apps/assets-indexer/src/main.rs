@@ -10,7 +10,7 @@ use redis::{
     AsyncCommands, RedisResult, Value,
 };
 use services::{
-    proccesors::{
+    processors::{
         // erc1155_transfer_batch_event_processor::Erc1155TransferBatchProcessor,
         // erc1155_transfer_single_event_processor::Erc1155TransferSingleProcessor,
         erc721_transfer_event_processor::Erc721TransferProcessor,
@@ -124,6 +124,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                                 let topics = log.topics;
                                 processor
                                     .process_and_store_if_apply(&EventProcessorRequest {
+                                        hash: log.transaction_hash.unwrap_or_default(),
+                                        index: log.transaction_index.unwrap_or_default(),
                                         address,
                                         data,
                                         topic0: topics

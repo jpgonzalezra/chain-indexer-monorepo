@@ -19,7 +19,7 @@ CREATE TABLE erc721_transfer (
     block_id INTEGER NOT NULL,
     "from" VARCHAR(255) NOT NULL,
     "to" VARCHAR(255) NOT NULL,
-    token_id INTEGER NOT NULL,
+    token_id VARCHAR NOT NULL,
     FOREIGN KEY (contract_id) REFERENCES contract(id),
     FOREIGN KEY (block_id) REFERENCES block(id)
 );
@@ -29,7 +29,7 @@ CREATE TABLE erc1155_transfer (
     contract_id INTEGER NOT NULL,
     block_id INTEGER NOT NULL,
     amounts INTEGER[] NOT NULL,
-    token_ids INTEGER[] NOT NULL,
+    token_ids VARCHAR[] NOT NULL,
     "from" VARCHAR(255) NOT NULL,
     "to" VARCHAR(255) NOT NULL,
     FOREIGN KEY (contract_id) REFERENCES contract(id),

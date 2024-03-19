@@ -1,2 +1,2 @@
-pub mod proccesors;
+pub mod processors;
 pub mod repositories;

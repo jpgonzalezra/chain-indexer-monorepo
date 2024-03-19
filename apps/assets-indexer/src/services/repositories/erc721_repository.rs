@@ -10,7 +10,7 @@ pub struct Erc721TransferData {
     pub block_number: i32,
     pub from: String,
     pub to: String,
-    pub token_id: i32,
+    pub token_id: String,
 }
 
 #[async_trait]
