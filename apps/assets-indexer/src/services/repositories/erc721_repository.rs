@@ -6,8 +6,7 @@ use sqlx::PgPool;
 
 #[derive(Debug)]
 pub struct Erc721TransferData {
-    pub address: String,
-    pub chain_id: i32,
+    pub contract_id: i32,
     pub block_number: i32,
     pub from: String,
     pub to: String,
@@ -23,13 +22,13 @@ pub trait Erc721TransferTrait: Clone + Send + Sync + 'static {
 }
 
 #[derive(Clone)]
-pub struct Erc721StoreTransfer {
+pub struct Erc721Repository {
     pub database_pool: Arc<PgPool>,
     pub chain_config: ChainConfig,
     pub block_id: i32,
 }
 
-impl Erc721StoreTransfer {
+impl Erc721Repository {
     pub async fn new(
         database_pool: Arc<PgPool>,
         chain_config: ChainConfig,
@@ -51,22 +50,13 @@ impl Erc721StoreTransfer {
 }
 
 #[async_trait]
-impl Erc721TransferTrait for Erc721StoreTransfer {
+impl Erc721TransferTrait for Erc721Repository {
     async fn insert_transfer(
         &self,
         transfer: Erc721TransferData,
     ) -> Result<(), sqlx::Error> {
-        let contract_id: i32 = sqlx::query_as::<_, (i32,)>(
-            "SELECT id FROM contract WHERE address = $1 AND chain_id = $2",
-        )
-        .bind(&transfer.address)
-        .bind(transfer.chain_id)
-        .fetch_one(&*self.database_pool)
-        .await?
-        .0;
-
         sqlx::query("INSERT INTO erc721_transfer (contract_id, block_id, \"from\", \"to\", token_id) VALUES ($1, $2, $3, $4, $5)")
-        .bind(contract_id)
+        .bind(transfer.contract_id)
         .bind(self.block_id)
         .bind(&transfer.from)
         .bind(&transfer.to)
