@@ -11,12 +11,14 @@ use redis::{
 };
 use services::{
     proccesors::{
-        erc1155_transfer_batch_event_processor::Erc1155TransferBatchProcessor,
-        erc1155_transfer_single_event_processor::Erc1155TransferSingleProcessor,
+        // erc1155_transfer_batch_event_processor::Erc1155TransferBatchProcessor,
+        // erc1155_transfer_single_event_processor::Erc1155TransferSingleProcessor,
         erc721_transfer_event_processor::Erc721TransferProcessor,
         event_processor::{EventProcessorRequest, EventProcessorService},
     },
-    repositories::erc721_transfer::Erc721StoreTransfer,
+    repositories::{
+        contract_repository::ContractRepository, erc721_repository::Erc721Repository,
+    },
 };
 use sqlx::postgres::PgPoolOptions;
 
@@ -79,11 +81,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut processor = EventProcessorService::new();
     processor.add_processor(Box::new(Erc721TransferProcessor {
-        store_transfer: Erc721StoreTransfer::new(Arc::new(database_pool), config.chain)
+        erc721_repository: Erc721Repository::new(
+            Arc::new(database_pool.clone()),
+            config.chain.clone(),
+        )
+        .await?,
+        contract_repository: ContractRepository::new(Arc::new(database_pool.clone()))
             .await?,
     }));
-    processor.add_processor(Box::new(Erc1155TransferSingleProcessor));
-    processor.add_processor(Box::new(Erc1155TransferBatchProcessor));
+    // processor.add_processor(Box::new(Erc1155TransferSingleProcessor));
+    // processor.add_processor(Box::new(Erc1155TransferBatchProcessor));
 
     ensure_stream_and_group_exist(
         &mut redis_conn,
@@ -113,7 +120,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                             let logs: Vec<SummaryLog> = serde_json::from_str(&json_data)?;
                             for log in logs {
                                 let address = log.address;
-                                println!("{:?}", address);
                                 let data = log.data;
                                 let topics = log.topics;
                                 processor
@@ -124,6 +130,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                                             .first()
                                             .cloned()
                                             .unwrap_or_default(),
+                                        block_number: log.block_number,
+                                        chain_id: config.chain.clone().id,
                                         topic1: topics.get(1).cloned(),
                                         topic2: topics.get(2).cloned(),
                                         topic3: topics.get(3).cloned(),
