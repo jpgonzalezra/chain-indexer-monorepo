@@ -18,13 +18,13 @@ pub struct AssetsIndexerArgs {
         default_value_t = 1
     )]
     pub db_trans_batch_size: usize,
-    #[arg(long, help = "Redis host value.", default_value = "127.0.0.1")]
     #[arg(
         long,
         help = "Chain ID number to synchronize with.",
         default_value_t = 1
     )]
     pub chain_id: usize,
+    #[arg(long, help = "Redis host value.", default_value = "127.0.0.1")]
     pub redis_host: String,
     #[arg(long, help = "Redis port value.", default_value = "6379")]
     pub redis_port: u16,
