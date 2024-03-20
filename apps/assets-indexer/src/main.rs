@@ -82,22 +82,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut processor = EventProcessorService::new();
     processor.add_processor(Box::new(Erc721TransferProcessor {
-        erc721_repository: Erc721Repository::new(
-            Arc::new(database_pool.clone()),
-            config.chain.clone(),
-        )
-        .await?,
-        contract_repository: ContractRepository::new(Arc::new(database_pool.clone()))
-            .await?,
+        erc721_repository: Erc721Repository::new(Arc::new(database_pool.clone())),
+        contract_repository: ContractRepository::new(Arc::new(database_pool.clone())),
     }));
     processor.add_processor(Box::new(Erc1155TransferSingleProcessor {
-        erc1155_repository: Erc1155Repository::new(
-            Arc::new(database_pool.clone()),
-            config.chain.clone(),
-        )
-        .await?,
-        contract_repository: ContractRepository::new(Arc::new(database_pool.clone()))
-            .await?,
+        erc1155_repository: Erc1155Repository::new(Arc::new(database_pool.clone())),
+        contract_repository: ContractRepository::new(Arc::new(database_pool.clone())),
     }));
     // processor.add_processor(Box::new(Erc1155TransferBatchProcessor));
 
@@ -133,8 +123,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                                 let topics = log.topics;
                                 processor
                                     .process_and_store_if_apply(&EventProcessorRequest {
-                                        hash: log.transaction_hash.unwrap_or_default(),
-                                        index: log.transaction_index.unwrap_or_default(),
+                                        tx_hash: log.transaction_hash.unwrap_or_default(),
+                                        tx_index: log
+                                            .transaction_index
+                                            .unwrap_or_default(),
                                         address,
                                         data,
                                         topic0: topics
