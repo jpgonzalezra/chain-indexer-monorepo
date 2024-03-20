@@ -41,7 +41,7 @@ impl Erc1155TransferTrait for Erc1155Repository {
         &self,
         transfer: Erc1155TransferData,
     ) -> Result<(), sqlx::Error> {
-        sqlx::query("INSERT INTO erc1155_transfer (contract_id, block_number, chain_id, tx_hash, tx_index, \"from\", \"to\", token_ids, amounts) VALUES ($1, $2, $3, $4, $5, $6, $7)")
+        sqlx::query("INSERT INTO erc1155_transfer (contract_id, block_number, chain_id, tx_hash, tx_index, \"from\", \"to\", token_ids, amounts) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)")
          .bind(transfer.contract_id)
          .bind(transfer.block_number)
          .bind(transfer.chain_id)

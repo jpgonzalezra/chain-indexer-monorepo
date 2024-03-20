@@ -40,7 +40,7 @@ impl Erc721TransferTrait for Erc721Repository {
         &self,
         transfer: Erc721TransferData,
     ) -> Result<(), sqlx::Error> {
-        sqlx::query("INSERT INTO erc721_transfer (contract_id, block_number, chain_id, tx_hash, tx_index, \"from\", \"to\", token_id) VALUES ($1, $2, $3, $4, $5, $6)")
+        sqlx::query("INSERT INTO erc721_transfer (contract_id, block_number, chain_id, tx_hash, tx_index, \"from\", \"to\", token_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)")
         .bind(transfer.contract_id)
         .bind(transfer.block_number)
         .bind(transfer.chain_id)

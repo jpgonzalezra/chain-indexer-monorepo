@@ -94,7 +94,7 @@ impl BlockRepositoryTrait for BlockRepository {
             binds.push(Bind::INT(block.chain_id as i32));
         }
 
-        query.push_str(" ON CONFLICT (block_number) DO NOTHING");
+        query.push_str(" ON CONFLICT (chain_id, block_number) DO NOTHING");
 
         let mut query_builder = sqlx::query(&query);
 
