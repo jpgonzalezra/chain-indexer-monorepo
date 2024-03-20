@@ -19,8 +19,8 @@ pub struct ContractRepository {
 }
 
 impl ContractRepository {
-    pub async fn new(database_pool: Arc<PgPool>) -> Result<Self, sqlx::Error> {
-        Ok(Self { database_pool })
+    pub fn new(database_pool: Arc<PgPool>) -> Self {
+        Self { database_pool }
     }
 }
 
