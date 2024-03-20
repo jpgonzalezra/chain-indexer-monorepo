@@ -11,7 +11,7 @@ use redis::{
 };
 use services::{
     processors::{
-        // erc1155_transfer_batch_event_processor::Erc1155TransferBatchProcessor,
+        erc1155_transfer_batch_event_processor::Erc1155TransferBatchProcessor,
         erc1155_transfer_single_event_processor::Erc1155TransferSingleProcessor,
         erc721_transfer_event_processor::Erc721TransferProcessor,
         event_processor::{EventProcessorRequest, EventProcessorService},
@@ -89,7 +89,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         erc1155_repository: Erc1155Repository::new(Arc::new(database_pool.clone())),
         contract_repository: ContractRepository::new(Arc::new(database_pool.clone())),
     }));
-    // processor.add_processor(Box::new(Erc1155TransferBatchProcessor));
+    processor.add_processor(Box::new(Erc1155TransferBatchProcessor {
+        erc1155_repository: Erc1155Repository::new(Arc::new(database_pool.clone())),
+        contract_repository: ContractRepository::new(Arc::new(database_pool.clone())),
+    }));
 
     ensure_stream_and_group_exist(
         &mut redis_conn,
