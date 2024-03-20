@@ -12,12 +12,13 @@ use redis::{
 use services::{
     processors::{
         // erc1155_transfer_batch_event_processor::Erc1155TransferBatchProcessor,
-        // erc1155_transfer_single_event_processor::Erc1155TransferSingleProcessor,
+        erc1155_transfer_single_event_processor::Erc1155TransferSingleProcessor,
         erc721_transfer_event_processor::Erc721TransferProcessor,
         event_processor::{EventProcessorRequest, EventProcessorService},
     },
     repositories::{
-        contract_repository::ContractRepository, erc721_repository::Erc721Repository,
+        contract_repository::ContractRepository, erc1155_repository::Erc1155Repository,
+        erc721_repository::Erc721Repository,
     },
 };
 use sqlx::postgres::PgPoolOptions;
@@ -89,7 +90,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         contract_repository: ContractRepository::new(Arc::new(database_pool.clone()))
             .await?,
     }));
-    // processor.add_processor(Box::new(Erc1155TransferSingleProcessor));
+    processor.add_processor(Box::new(Erc1155TransferSingleProcessor {
+        erc1155_repository: Erc1155Repository::new(
+            Arc::new(database_pool.clone()),
+            config.chain.clone(),
+        )
+        .await?,
+        contract_repository: ContractRepository::new(Arc::new(database_pool.clone()))
+            .await?,
+    }));
     // processor.add_processor(Box::new(Erc1155TransferBatchProcessor));
 
     ensure_stream_and_group_exist(
