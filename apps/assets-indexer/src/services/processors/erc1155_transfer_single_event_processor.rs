@@ -58,7 +58,7 @@ impl EventProcessor for Erc1155TransferSingleProcessor {
             .map_err(|e| ProcessorError::DatabaseError(e.to_string()))?;
 
         let from_address_bytes = array_bytes::hex_n_into::<String, H256, 32>(
-            event.topic3.clone().ok_or_else(|| {
+            event.topic2.clone().ok_or_else(|| {
                 ProcessorError::ValidationError(
                     "Missing 'from' address topic".to_string(),
                 )
