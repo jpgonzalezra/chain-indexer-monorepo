@@ -149,6 +149,9 @@ impl EventProcessor for Erc721TransferProcessor {
         let transfer_data = Erc721TransferData {
             contract_id,
             block_number: event.block_number as i32,
+            chain_id: event.chain_id as i32,
+            tx_hash: event.tx_hash.clone(),
+            tx_index: event.tx_index,
             from,
             to,
             token_id: id_uint.to_string(),
