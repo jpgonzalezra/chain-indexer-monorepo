@@ -48,9 +48,6 @@ impl EventProcessor for Erc1155TransferSingleProcessor {
                     ProcessorError::DecodeError(e.to_string(), event.data.clone())
                 })?;
 
-        let id = transfer_values[0].clone().into_uint().unwrap();
-        let amount = transfer_values[1].clone().into_uint().unwrap();
-
         let contract_id = self
             .contract_repository
             .get_or_create_contract(&event.address, event.chain_id as i32)
@@ -131,7 +128,9 @@ impl EventProcessor for Erc1155TransferSingleProcessor {
                 )
             })?)
         );
-        let id = id.clone().to_string();
+
+        let id = transfer_values[0].clone().into_uint().unwrap();
+        let amount = transfer_values[1].clone().into_uint().unwrap();
 
         let transfer_data = Erc1155TransferData {
             contract_id,
@@ -141,7 +140,7 @@ impl EventProcessor for Erc1155TransferSingleProcessor {
             tx_index: event.tx_index,
             from,
             to,
-            token_ids: [id].to_vec(),
+            token_ids: [id.clone().to_string()].to_vec(),
             amounts: [amount.clone().to_string()].to_vec(),
         };
 
