@@ -28,7 +28,7 @@ CREATE TABLE erc1155_transfer (
     id SERIAL PRIMARY KEY,
     contract_id INTEGER NOT NULL,
     block_id INTEGER NOT NULL,
-    amounts INTEGER[] NOT NULL,
+    amounts VARCHAR[] NOT NULL,
     token_ids VARCHAR[] NOT NULL,
     "from" VARCHAR(255) NOT NULL,
     "to" VARCHAR(255) NOT NULL,
