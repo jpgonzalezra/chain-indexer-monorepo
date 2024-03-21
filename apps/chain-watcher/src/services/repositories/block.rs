@@ -25,8 +25,8 @@ pub struct BlockNumber {
 #[async_trait]
 pub trait BlockRepositoryTrait: Clone + Send + Sync + 'static {
     fn new(database_pool: Arc<PgPool>, chain_config: ChainConfig) -> Self;
-    async fn reset(&self) -> Result<(), sqlx::Error>;
     async fn get_indexed_blocks(&self) -> Result<Vec<u64>, sqlx::Error>;
+    async fn insert_block(&self, blocks: Block) -> Result<(), sqlx::Error>;
     async fn insert_blocks_bulk(&self, blocks: &[Block]) -> Result<(), sqlx::Error>;
 }
 
@@ -45,15 +45,6 @@ impl BlockRepositoryTrait for BlockRepository {
         }
     }
 
-    async fn reset(&self) -> Result<(), sqlx::Error> {
-        let pool = self.database_pool.clone();
-        _ = sqlx::query("DELETE FROM block WHERE chain_id = $1")
-            .bind(self.chain_config.id as i32)
-            .fetch_all(&*pool)
-            .await?;
-        Ok(())
-    }
-
     async fn get_indexed_blocks(&self) -> Result<Vec<u64>, sqlx::Error> {
         let pool = self.database_pool.clone();
         let result = sqlx::query_as::<_, BlockNumber>(
@@ -67,6 +58,19 @@ impl BlockRepositoryTrait for BlockRepository {
         .collect();
 
         Ok(result)
+    }
+
+    async fn insert_block(&self, block: Block) -> Result<(), sqlx::Error> {
+        let query = "INSERT INTO block (block_number, hash, chain_id) VALUES ($1, $2, $3) ON CONFLICT (chain_id, block_number) DO NOTHING";
+
+        sqlx::query(query)
+            .bind(block.block_number as i64)
+            .bind(&block.hash)
+            .bind(block.chain_id as i32)
+            .execute(&*self.database_pool)
+            .await?;
+
+        Ok(())
     }
 
     async fn insert_blocks_bulk(&self, blocks: &[Block]) -> Result<(), sqlx::Error> {
