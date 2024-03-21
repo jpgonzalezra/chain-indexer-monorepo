@@ -129,8 +129,17 @@ impl EventProcessor for Erc1155TransferSingleProcessor {
             })?)
         );
 
-        let id = transfer_values[0].clone().into_uint().unwrap();
-        let amount = transfer_values[1].clone().into_uint().unwrap();
+        let id = transfer_values[0].clone().into_uint().ok_or_else(|| {
+            ProcessorError::ValidationError(
+                "Failed to extract token ID from transfer values".to_string(),
+            )
+        })?;
+
+        let amount = transfer_values[1].clone().into_uint().ok_or_else(|| {
+            ProcessorError::ValidationError(
+                "Failed to extract amount from transfer values".to_string(),
+            )
+        })?;
 
         let transfer_data = Erc1155TransferData {
             contract_id,
