@@ -42,11 +42,14 @@ impl EventProcessor for Erc1155TransferBatchProcessor {
             ProcessorError::DecodeError(e.to_string(), event.data.clone())
         })?;
 
-        let transfer_values =
-            ethabi::decode(&[ParamType::Uint(256), ParamType::Uint(256)], &data[..])
-                .map_err(|e| {
-                    ProcessorError::DecodeError(e.to_string(), event.data.clone())
-                })?;
+        let transfer_values = ethabi::decode(
+            &[
+                ParamType::Array(Box::new(ParamType::Uint(256))),
+                ParamType::Array(Box::new(ParamType::Uint(256))),
+            ],
+            &data[..],
+        )
+        .unwrap();
 
         let contract_id = self
             .contract_repository
@@ -129,20 +132,58 @@ impl EventProcessor for Erc1155TransferBatchProcessor {
             })?)
         );
 
-        let token_ids: Vec<String> = transfer_values[0]
+        let token_ids_result: Result<Vec<String>, ProcessorError> = transfer_values[0]
             .clone()
             .into_array()
-            .unwrap()
-            .iter()
-            .map(|token| token.clone().into_uint().unwrap().to_string())
-            .collect();
-        let amounts: Vec<String> = transfer_values[1]
+            .ok_or_else(|| {
+                ProcessorError::ValidationError(
+                    "Failed to extract token IDs as array".to_string(),
+                )
+            })
+            .and_then(|array| {
+                array
+                    .iter()
+                    .map(|token| {
+                        token
+                            .clone()
+                            .into_uint()
+                            .ok_or_else(|| {
+                                ProcessorError::ValidationError(
+                                    "Failed to convert token ID into uint".to_string(),
+                                )
+                            })
+                            .map(|uint| uint.to_string())
+                    })
+                    .collect()
+            });
+
+        let amounts_result: Result<Vec<String>, ProcessorError> = transfer_values[1]
             .clone()
             .into_array()
-            .unwrap()
-            .iter()
-            .map(|token| token.clone().into_uint().unwrap().to_string())
-            .collect();
+            .ok_or_else(|| {
+                ProcessorError::ValidationError(
+                    "Failed to extract amounts as array".to_string(),
+                )
+            })
+            .and_then(|array| {
+                array
+                    .iter()
+                    .map(|amount| {
+                        amount
+                            .clone()
+                            .into_uint()
+                            .ok_or_else(|| {
+                                ProcessorError::ValidationError(
+                                    "Failed to convert amount into uint".to_string(),
+                                )
+                            })
+                            .map(|uint| uint.to_string())
+                    })
+                    .collect()
+            });
+
+        let token_ids = token_ids_result?;
+        let amounts = amounts_result?;
 
         let transfer_data = Erc1155TransferData {
             contract_id,
