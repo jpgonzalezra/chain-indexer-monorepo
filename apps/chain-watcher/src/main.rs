@@ -41,7 +41,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let database_pool = PgPoolOptions::new().connect(&database_url).await?;
     let block_repository =
-        BlockRepository::new(Arc::new(database_pool), config.chain.clone());
+        BlockRepository::new(Arc::new(database_pool.clone()), config.chain.clone());
 
     let synchronizer = ChainSynchronizer::new(
         BlockchainClient {
@@ -55,7 +55,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     );
 
     if config.reset {
-        synchronizer.reset().await?
+        // TODO: implement
     }
 
     let mut start_block = synchronizer.start_block();
