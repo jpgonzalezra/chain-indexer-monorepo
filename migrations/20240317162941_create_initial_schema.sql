@@ -7,10 +7,9 @@ CREATE TABLE contract (
 );
 
 CREATE TABLE block (
+    id SERIAL PRIMARY KEY,
     block_number BIGINT NOT NULL,
-    chain_id INTEGER NOT NULL,
-    hash VARCHAR(255) NOT NULL UNIQUE,
-    PRIMARY KEY (chain_id, block_number)
+    chain_id INTEGER NOT NULL
 );
 
 CREATE TABLE erc721_transfer (
@@ -23,8 +22,7 @@ CREATE TABLE erc721_transfer (
     "from" VARCHAR(255) NOT NULL,
     "to" VARCHAR(255) NOT NULL,
     token_id VARCHAR NOT NULL,
-    FOREIGN KEY (contract_id) REFERENCES contract(id),
-    FOREIGN KEY (chain_id, block_number) REFERENCES block(chain_id, block_number)
+    FOREIGN KEY (contract_id) REFERENCES contract(id)
 );
 
 CREATE TABLE erc1155_transfer (
@@ -38,6 +36,5 @@ CREATE TABLE erc1155_transfer (
     token_ids VARCHAR[] NOT NULL,
     "from" VARCHAR(255) NOT NULL,
     "to" VARCHAR(255) NOT NULL,
-    FOREIGN KEY (contract_id) REFERENCES contract(id),
-    FOREIGN KEY (chain_id, block_number) REFERENCES block(chain_id, block_number)
+    FOREIGN KEY (contract_id) REFERENCES contract(id)
 );

@@ -7,7 +7,6 @@ use sqlx::{FromRow, PgPool};
 pub enum Bind {
     BIGINT(i64),
     INT(i32),
-    STRING(String),
 }
 
 #[derive(Debug)]
@@ -79,26 +78,22 @@ impl BlockRepositoryTrait for BlockRepository {
         }
 
         let mut query =
-            String::from("INSERT INTO block (block_number, hash, chain_id) VALUES ");
+            String::from("INSERT INTO block (block_number, chain_id) VALUES ");
 
         let mut binds: Vec<Bind> = vec![];
         for (index, block) in blocks.iter().enumerate() {
             if index > 0 {
                 query.push_str(", ");
             }
-            let placeholder_index = index * 3 + 1;
+            let placeholder_index = index * 2 + 1;
             query.push_str(&format!(
-                "(${}, ${}, ${})",
+                "(${}, ${})",
                 placeholder_index,
                 placeholder_index + 1,
-                placeholder_index + 2
             ));
             binds.push(Bind::BIGINT(block.block_number as i64));
-            binds.push(Bind::STRING(block.hash.to_string()));
             binds.push(Bind::INT(block.chain_id as i32));
         }
-
-        query.push_str(" ON CONFLICT (chain_id, block_number) DO NOTHING");
 
         let mut query_builder = sqlx::query(&query);
 
@@ -106,7 +101,6 @@ impl BlockRepositoryTrait for BlockRepository {
             match bind {
                 Bind::BIGINT(i64_data) => query_builder = query_builder.bind(i64_data),
                 Bind::INT(i32_data) => query_builder = query_builder.bind(i32_data),
-                Bind::STRING(string) => query_builder = query_builder.bind(string),
             }
         }
 
