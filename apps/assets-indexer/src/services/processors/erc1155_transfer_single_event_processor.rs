@@ -1,9 +1,9 @@
 use async_trait::async_trait;
-use ethers::types::H256;
 
 use super::event_processor::{
     EventProcessor, EventProcessorRequest, ProcessResult, ProcessorError,
 };
+use super::event_processor_utils::decode_address;
 use crate::services::repositories::contract_repository::ContractRepositoryTrait;
 use crate::services::repositories::erc1155_repository::Erc1155TransferTrait;
 use crate::services::repositories::{
@@ -54,80 +54,8 @@ impl EventProcessor for Erc1155TransferSingleProcessor {
             .await
             .map_err(|e| ProcessorError::DatabaseError(e.to_string()))?;
 
-        let from_address_bytes = array_bytes::hex_n_into::<String, H256, 32>(
-            event.topic2.clone().ok_or_else(|| {
-                ProcessorError::ValidationError(
-                    "Missing 'from' address topic".to_string(),
-                )
-            })?,
-        )
-        .map_err(|_| {
-            ProcessorError::ParseError(
-                "Failed to parse 'from' address".to_string(),
-                "".to_string(),
-            )
-        })?;
-
-        let from_address_tokens =
-            ethabi::decode(&[ParamType::Address], from_address_bytes.as_bytes())
-                .map_err(|e| {
-                    ProcessorError::DecodeError(
-                        "Failed to decode 'from' address".to_string(),
-                        e.to_string(),
-                    )
-                })?;
-
-        let from_address = from_address_tokens.first().ok_or_else(|| {
-            ProcessorError::ValidationError(
-                "Missing 'from' address in tokens".to_string(),
-            )
-        })?;
-
-        let from = format!(
-            "0x{}",
-            hex::encode(from_address.clone().into_address().ok_or_else(|| {
-                ProcessorError::ParseError(
-                    "Failed to convert from_address into string".to_string(),
-                    "".to_string(),
-                )
-            })?)
-        );
-
-        let to_address_bytes = array_bytes::hex_n_into::<String, H256, 32>(
-            event.topic3.clone().ok_or_else(|| {
-                ProcessorError::ValidationError("Missing 'to' address topic".to_string())
-            })?,
-        )
-        .map_err(|_| {
-            ProcessorError::ParseError(
-                "Failed to parse 'to' address".to_string(),
-                "".to_string(),
-            )
-        })?;
-
-        let to_address_tokens =
-            ethabi::decode(&[ParamType::Address], to_address_bytes.as_bytes()).map_err(
-                |e| {
-                    ProcessorError::DecodeError(
-                        "Failed to decode 'to' address".to_string(),
-                        e.to_string(),
-                    )
-                },
-            )?;
-
-        let to_address = to_address_tokens.first().ok_or_else(|| {
-            ProcessorError::ValidationError("Missing 'to' address in tokens".to_string())
-        })?;
-
-        let to = format!(
-            "0x{}",
-            hex::encode(to_address.clone().into_address().ok_or_else(|| {
-                ProcessorError::ParseError(
-                    "Failed to convert to_address into string".to_string(),
-                    "".to_string(),
-                )
-            })?)
-        );
+        let from = decode_address(event.topic2.clone()).await?;
+        let to = decode_address(event.topic3.clone()).await?;
 
         let id = transfer_values[0].clone().into_uint().ok_or_else(|| {
             ProcessorError::ValidationError(
