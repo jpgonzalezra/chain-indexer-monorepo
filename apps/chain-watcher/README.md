@@ -17,8 +17,59 @@ Beyond simple data indexing, Chain Watcher's standout feature is its ability to 
 To run chain-watcher, you need to have installed:
 
 - Rust
+
+Rust programming language environment includes rustc (the compiler), cargo (the package manager), and standard library documentation.
+Execute the following command:
+
+```sh
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+```
+
+verify
+
+```sh
+rustc --version
+```
+
 - PostgreSQL
+
+Execute the following command:
+
+```sh
+sudo apt install postgresql postgresql-contrib
+```
+
+verify
+
+```sh
+psql --version
+```
+
+After installation, start PostgreSQL service:
+
+```sh
+brew services start postgresql
+```
+
 - Redis
+
+Execute the following command:
+
+```sh
+brew install redis
+```
+
+To have Redis start automatically when your machine starts:
+
+```sh
+brew services start redis
+```
+
+verify
+
+```sh
+redis-server --version
+```
 
 ### How It Works
 
