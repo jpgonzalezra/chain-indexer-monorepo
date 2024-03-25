@@ -1,11 +1,11 @@
 # Monorepo for Blockchain Indexing Services
 
-This monorepo houses two critical microservices designed for blockchain data indexing and analysis: `chain-watcher` and `assets-identifier`. Both services are tailored for EVM-compatible blockchains, providing real-time monitoring, event processing, and efficient data indexing.
+This monorepo houses two critical microservices designed for blockchain data indexing and analysis: `chain-watcher` and `assets-indexer`. Both services are tailored for EVM-compatible blockchains, providing real-time monitoring, event processing, and efficient data indexing.
 
 ## Services Overview
 
 - **Chain Watcher**: Monitors and indexes blockchain data in real-time, broadcasting relevant transaction logs and events for downstream processing.
-- **Assets Identifier**: Processes blockchain events, focusing on identifying and handling ERC721 and ERC1155 assets, and stores transaction data for analysis.
+- **Assets indexer**: Processes blockchain events, focusing on identifying and handling ERC721 and ERC1155 assets, and stores transaction data for analysis.
 
 ## Prerequisites
 
@@ -98,5 +98,5 @@ Each service can be configured through command-line arguments or environment var
 - Chain Watcher
 Refer to chain-watcher/README.md for instructions on how to set up and run the Chain Watcher service.
 
-- Assets Identifier
-Refer to assets-identifier/README.md for setup and usage guidelines for the Assets Identifier service.
+- Assets indexer
+Refer to assets-indexer/README.md for setup and usage guidelines for the Assets indexer service.
