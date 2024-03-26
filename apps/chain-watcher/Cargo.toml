@@ -23,3 +23,6 @@ hashbrown = "0.14.3"
 clap = "4.5.1"
 sqlx = { version = "0.7.3", features = [ "runtime-tokio-native-tls" , "postgres" ] }
 async-trait = "0.1.77"
+tracing = "0.1.40"
+tracing-subscriber = { version = "0.3.18", features = ["registry", "env-filter"] }
+tracing-appender = "0.2.3"

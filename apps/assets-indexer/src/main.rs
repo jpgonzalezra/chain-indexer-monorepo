@@ -22,6 +22,7 @@ use services::{
     },
 };
 use sqlx::postgres::PgPoolOptions;
+use tracing_appender::rolling;
 
 async fn ensure_stream_and_group_exist(
     conn: &mut redis::aio::Connection,
@@ -55,6 +56,14 @@ async fn ensure_stream_and_group_exist(
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let config = Config::new();
+
+    let file_appender = rolling::daily("./logs", "prefix.log");
+    let (non_blocking, _guard) = tracing_appender::non_blocking(file_appender);
+    let debug_level = if config.debug { "debug" } else { "info" };
+    tracing_subscriber::fmt()
+        .with_writer(non_blocking)
+        .with_env_filter(debug_level)
+        .init();
 
     let redis_config = config.redis_config;
 

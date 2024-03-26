@@ -29,12 +29,16 @@ pub struct ChainWatcherArgs {
     pub reset: bool,
     #[arg(
         long,
+        help = "Enables debug logging. Useful for troubleshooting and development. [optional]",
+        default_value_t = false
+    )]
+    pub debug: bool,
+    #[arg(
+        long,
         help = "Chain ID number to synchronize with.",
         default_value_t = 1
     )]
     pub chain_id: usize,
-    #[arg(long, help = "Enables debug logging.", default_value_t = false)]
-    pub debug: bool,
     #[arg(long, help = "RPC URL to use for fetching blocks.")]
     pub rpc: String,
     #[arg(long, help = "Block number to start syncing from. [optional]")]
@@ -84,6 +88,7 @@ pub struct Config {
     pub rpc: String,
     pub num_workers: usize,
     pub reset: bool,
+    pub debug: bool,
 }
 
 impl Default for Config {
@@ -124,6 +129,7 @@ impl Config {
             rpc,
             num_workers: num_cpus::get(),
             reset: args.reset,
+            debug: args.debug,
         }
     }
 }

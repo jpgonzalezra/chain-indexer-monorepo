@@ -4,18 +4,27 @@ pub mod services;
 
 use std::sync::Arc;
 
+use crate::services::sync::ChainSynchronizer;
 use clients::{blockchain_client::BlockchainClient, redis_client::RedisClient};
 use common::redis::redis_pool_factory;
 use config::Config;
 use ethers::providers::{Http, Provider};
 use services::repositories::block::{BlockRepository, BlockRepositoryTrait};
 use sqlx::postgres::PgPoolOptions;
-
-use crate::services::sync::ChainSynchronizer;
+use tracing_appender::rolling;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let config: Config = Config::new();
+
+    let file_appender = rolling::daily("./logs", "prefix.log");
+    let (non_blocking, _guard) = tracing_appender::non_blocking(file_appender);
+
+    let debug_level = if config.debug { "debug" } else { "info" };
+    tracing_subscriber::fmt()
+        .with_writer(non_blocking)
+        .with_env_filter(debug_level)
+        .init();
 
     let redis_config = config.clone().redis_config;
     let redis_pool = redis_pool_factory(

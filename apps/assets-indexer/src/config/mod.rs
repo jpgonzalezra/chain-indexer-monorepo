@@ -42,6 +42,12 @@ pub struct AssetsIndexerArgs {
     pub db_password: Option<String>,
     #[arg(long, help = "Database name value.")]
     pub db_name: String,
+    #[arg(
+        long,
+        help = "Enables debug logging. Useful for troubleshooting and development. [optional]",
+        default_value_t = false
+    )]
+    pub debug: bool,
 }
 
 static CHAIN_CONFIGS: Lazy<HashMap<usize, ChainConfig>> = Lazy::new(|| {
@@ -62,6 +68,7 @@ pub struct Config {
     pub chain: ChainConfig,
     pub db_config: DbConfig,
     pub redis_config: RedisConfig,
+    pub debug: bool,
 }
 
 impl Default for Config {
@@ -94,6 +101,7 @@ impl Config {
                 password: args.redis_password,
                 db: args.redis_db,
             },
+            debug: args.debug,
         }
     }
 }
