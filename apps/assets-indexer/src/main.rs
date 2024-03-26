@@ -23,6 +23,7 @@ use services::{
 };
 use sqlx::postgres::PgPoolOptions;
 use tracing_appender::rolling;
+use tracing_subscriber::{fmt, layer::SubscriberExt, util::SubscriberInitExt, EnvFilter};
 
 async fn ensure_stream_and_group_exist(
     conn: &mut redis::aio::Connection,
@@ -61,10 +62,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let file_appender = rolling::never("./logs", "assets-indexer.log");
     let (non_blocking, _guard) = tracing_appender::non_blocking(file_appender);
+
     let debug_level = if config.debug { "debug" } else { "info" };
-    tracing_subscriber::fmt()
-        .with_writer(non_blocking)
-        .with_env_filter(debug_level)
+    let console_layer = fmt::layer().with_writer(std::io::stdout);
+    let file_layer = fmt::layer().with_writer(non_blocking);
+    let filter_layer = EnvFilter::new(debug_level);
+
+    tracing_subscriber::registry()
+        .with(console_layer)
+        .with(file_layer)
+        .with(filter_layer)
         .init();
 
     let redis_config = config.redis_config;

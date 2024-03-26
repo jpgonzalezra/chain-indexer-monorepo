@@ -2,8 +2,6 @@ pub mod clients;
 pub mod config;
 pub mod services;
 
-use std::sync::Arc;
-
 use crate::services::sync::ChainSynchronizer;
 use clients::{blockchain_client::BlockchainClient, redis_client::RedisClient};
 use common::redis::redis_pool_factory;
@@ -11,7 +9,9 @@ use config::Config;
 use ethers::providers::{Http, Provider};
 use services::repositories::block::{BlockRepository, BlockRepositoryTrait};
 use sqlx::postgres::PgPoolOptions;
+use std::sync::Arc;
 use tracing_appender::rolling;
+use tracing_subscriber::{fmt, layer::SubscriberExt, util::SubscriberInitExt, EnvFilter};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -21,9 +21,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let (non_blocking, _guard) = tracing_appender::non_blocking(file_appender);
 
     let debug_level = if config.debug { "debug" } else { "info" };
-    tracing_subscriber::fmt()
-        .with_writer(non_blocking)
-        .with_env_filter(debug_level)
+    let console_layer = fmt::layer().with_writer(std::io::stdout);
+    let file_layer = fmt::layer().with_writer(non_blocking);
+    let filter_layer = EnvFilter::new(debug_level);
+
+    tracing_subscriber::registry()
+        .with(console_layer)
+        .with(file_layer)
+        .with(filter_layer)
         .init();
 
     let redis_config = config.clone().redis_config;
