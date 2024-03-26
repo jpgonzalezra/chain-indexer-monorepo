@@ -75,7 +75,7 @@ impl EventProcessorService {
         for processor in &self.processors {
             match processor.store_if_apply(event).await {
                 Ok(ProcessResult::Stored) => {
-                    tracing::debug!("Event stored successfully {:?}", event.tx_hash);
+                    tracing::info!("Event stored successfully {:?}", event.tx_hash);
                     tracing::debug!("Event: {:?}", event);
                 }
                 Ok(ProcessResult::NotApplicable) => {

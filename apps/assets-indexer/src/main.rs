@@ -44,7 +44,7 @@ async fn ensure_stream_and_group_exist(
             if e.kind() == redis::ErrorKind::ExtensionError
                 && e.to_string().contains("BUSYGROUP") =>
         {
-            tracing::error!(
+            tracing::info!(
                 "The group '{}' already exists for the stream '{}'.",
                 group_name,
                 stream_key
