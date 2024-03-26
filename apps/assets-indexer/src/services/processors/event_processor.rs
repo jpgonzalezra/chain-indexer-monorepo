@@ -75,13 +75,14 @@ impl EventProcessorService {
         for processor in &self.processors {
             match processor.store_if_apply(event).await {
                 Ok(ProcessResult::Stored) => {
-                    println!("Event stored successfully {:?}", event);
+                    tracing::debug!("Event stored successfully {:?}", event.tx_hash);
+                    tracing::debug!("Event: {:?}", event);
                 }
                 Ok(ProcessResult::NotApplicable) => {
                     // no-op
                 }
                 Err(e) => {
-                    eprintln!("Error processing event: {:?}, transaction hash: {:?}, index: {:?}", e, event.tx_hash, event.tx_index);
+                    tracing::error!("Error processing event: {:?}, transaction hash: {:?}, index: {:?}", e, event.tx_hash, event.tx_index);
                 }
             }
         }

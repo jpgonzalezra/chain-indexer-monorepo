@@ -34,17 +34,19 @@ async fn ensure_stream_and_group_exist(
         .xgroup_create_mkstream(stream_key, group_name, "$")
         .await;
     match create_group_result {
-        Ok(_) => println!(
+        Ok(_) => tracing::info!(
             "Group '{}' created for the stream '{}'.",
-            group_name, stream_key
+            group_name,
+            stream_key
         ),
         Err(ref e)
             if e.kind() == redis::ErrorKind::ExtensionError
                 && e.to_string().contains("BUSYGROUP") =>
         {
-            println!(
+            tracing::error!(
                 "The group '{}' already exists for the stream '{}'.",
-                group_name, stream_key
+                group_name,
+                stream_key
             );
         }
         Err(e) => return Err(e), // Propagate other errors.
@@ -157,7 +159,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     }
                 }
             }
-            Err(e) => println!("Error reading from stream: {}", e),
+            Err(e) => tracing::error!("Error reading from stream: {}", e),
         }
     }
 }

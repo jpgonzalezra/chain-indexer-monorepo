@@ -75,11 +75,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     loop {
         let end_block = synchronizer.end_block().await?;
 
-        println!("Indexing from block {} to block {}", start_block, end_block);
+        tracing::info!("Indexing from block {} to block {}", start_block, end_block);
 
         synchronizer.sync(start_block, end_block).await;
 
         start_block = end_block + 1;
-        println!("Updating start block {}", start_block);
+        tracing::info!("Updating start block {}", start_block);
     }
 }

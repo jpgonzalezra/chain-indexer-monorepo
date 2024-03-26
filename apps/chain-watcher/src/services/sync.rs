@@ -60,7 +60,7 @@ impl<B: BlockchainClientTrait, R: RedisClientTrait, E: BlockRepositoryTrait>
                 .await
             {
                 self.process_block(block.clone()).await;
-                println!("Block number {} processed. ", block_number);
+                tracing::info!("Block number {} processed. ", block_number);
                 blocks_batch.push(Block {
                     block_number: block.number.unwrap().as_u64(),
                     hash: format!("0x{}", hex::encode(block.hash.unwrap())),
@@ -68,7 +68,7 @@ impl<B: BlockchainClientTrait, R: RedisClientTrait, E: BlockRepositoryTrait>
                 });
 
                 if blocks_batch.len() == self.config.db_config.db_trans_batch_size {
-                    println!(
+                    tracing::info!(
                         "Insert {} processed index blocks into the db",
                         self.config.db_config.db_trans_batch_size
                     );
@@ -78,10 +78,10 @@ impl<B: BlockchainClientTrait, R: RedisClientTrait, E: BlockRepositoryTrait>
                         .await
                     {
                         Ok(_) => {
-                            println!("Blocks inserted successfully");
+                            tracing::info!("Blocks inserted successfully");
                         }
                         Err(error) => {
-                            println!("Error inserting blocks: {:?}", error);
+                            tracing::error!("Error inserting blocks: {:?}", error);
                         }
                     }
                     blocks_batch.clear();
@@ -112,9 +112,10 @@ impl<B: BlockchainClientTrait, R: RedisClientTrait, E: BlockRepositoryTrait>
                         .send_logs("ASSETS_INDEXER_STREAM".to_string(), logs)
                         .await
                     {
-                        println!(
+                        tracing::error!(
                             "Error sending logs for transaction hash {} error {}",
-                            transaction.hash, e
+                            transaction.hash,
+                            e
                         )
                     }
                 }
@@ -136,7 +137,7 @@ impl<B: BlockchainClientTrait, R: RedisClientTrait, E: BlockRepositoryTrait>
         let indexed_blocks = match self.block_repository.get_indexed_blocks().await {
             Ok(result) => result,
             Err(err) => {
-                println!("Error on retrieve missing block operation: {}.", err);
+                tracing::error!("Error on retrieve missing block operation: {}.", err);
                 Vec::new()
             }
         };
