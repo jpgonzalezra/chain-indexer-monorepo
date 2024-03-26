@@ -60,7 +60,7 @@ async fn ensure_stream_and_group_exist(
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let config = Config::new();
 
-    let file_appender = rolling::never("./logs", "assets-indexer.log");
+    let file_appender = rolling::daily("./logs", "assets-indexer.log");
     let (non_blocking, _guard) = tracing_appender::non_blocking(file_appender);
 
     let debug_level = if config.debug { "debug" } else { "info" };

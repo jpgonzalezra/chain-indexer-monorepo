@@ -17,7 +17,7 @@ use tracing_subscriber::{fmt, layer::SubscriberExt, util::SubscriberInitExt, Env
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let config: Config = Config::new();
 
-    let file_appender = rolling::never("./logs", "chain-watcher.log");
+    let file_appender = rolling::daily("./logs", "chain-watcher.log");
     let (non_blocking, _guard) = tracing_appender::non_blocking(file_appender);
 
     let debug_level = if config.debug { "debug" } else { "info" };
