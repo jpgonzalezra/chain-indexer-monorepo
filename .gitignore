@@ -23,3 +23,4 @@ Cargo.lock
 .vscode/tasks.json
 
 .aicommits
+logs
