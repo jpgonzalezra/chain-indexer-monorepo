@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{sync::Arc, time::Instant};
 
 use async_trait::async_trait;
 use common::types::ChainConfig;
@@ -59,6 +59,8 @@ impl BlockRepositoryTrait for BlockRepository {
     }
 
     async fn insert_block(&self, block: Block) -> Result<(), sqlx::Error> {
+        let start_time = Instant::now();
+
         let query = "INSERT INTO block (block_number, chain_id) VALUES ($1, $2)";
 
         sqlx::query(query)
@@ -67,6 +69,10 @@ impl BlockRepositoryTrait for BlockRepository {
             .execute(&*self.database_pool)
             .await?;
 
+        let end_time = Instant::now();
+        let duration = end_time.duration_since(start_time);
+
+        tracing::debug!("Block {:?} inserted in {:?}.", block.block_number, duration);
         Ok(())
     }
 
