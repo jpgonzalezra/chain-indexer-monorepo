@@ -1,3 +1,5 @@
+use std::time::Instant;
+
 use ethers::{
     providers::ProviderError,
     types::{Block as EthersBlock, Transaction},
@@ -60,7 +62,6 @@ impl<B: BlockchainClientTrait, R: RedisClientTrait, E: BlockRepositoryTrait>
                 .await
             {
                 self.process_block(block.clone()).await;
-                tracing::info!("Block number {} processed. ", block_number);
                 blocks_batch.push(Block {
                     block_number: block.number.unwrap().as_u64(),
                     hash: format!("0x{}", hex::encode(block.hash.unwrap())),
@@ -98,6 +99,8 @@ impl<B: BlockchainClientTrait, R: RedisClientTrait, E: BlockRepositoryTrait>
     }
 
     async fn process_block(&self, block: EthersBlock<Transaction>) {
+        let start_time = Instant::now();
+
         let mut futures = FuturesUnordered::new();
         for transaction in block.transactions {
             let blockchain_client = self.blockchain_client.clone();
@@ -127,6 +130,15 @@ impl<B: BlockchainClientTrait, R: RedisClientTrait, E: BlockRepositoryTrait>
         }
 
         while futures.next().await.is_some() {}
+
+        let end_time = Instant::now();
+        let duration = end_time.duration_since(start_time);
+
+        tracing::info!(
+            "Block number {:?} processed in {:?}.",
+            block.number,
+            duration
+        );
     }
 
     pub fn start_block(&self) -> u64 {
