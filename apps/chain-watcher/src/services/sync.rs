@@ -51,16 +51,30 @@ impl<B: BlockchainClientTrait, R: RedisClientTrait, E: BlockRepositoryTrait>
         self.process_blocks(start_block..=end_block).await;
     }
 
-    async fn process_blocks(&self, block_numbers: impl Iterator<Item = u64>) {
+    async fn process_blocks(
+        &self,
+        block_numbers: impl Iterator<Item = u64> + Send + 'static,
+    ) {
+        let mut futures = FuturesUnordered::new();
+
         for block_number in block_numbers {
-            if let Ok(Some(block)) = self
-                .blockchain_client
-                .get_block_with_txs(block_number)
-                .await
-            {
-                self.process_block(block.clone()).await;
+            let self_clone = self.clone();
+            futures.push(task::spawn(async move {
+                if let Ok(Some(block)) = self_clone
+                    .blockchain_client
+                    .get_block_with_txs(block_number)
+                    .await
+                {
+                    self_clone.process_block(block.clone()).await;
+                }
+            }));
+
+            if futures.len() >= self.config.num_workers {
+                futures.next().await;
             }
         }
+
+        while futures.next().await.is_some() {}
     }
 
     async fn process_block(&self, block: EthersBlock<Transaction>) {
