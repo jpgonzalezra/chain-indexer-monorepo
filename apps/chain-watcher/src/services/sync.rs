@@ -118,7 +118,7 @@ impl<B: BlockchainClientTrait, R: RedisClientTrait, E: BlockRepositoryTrait>
             .await
         {
             Ok(_) => {
-                tracing::info!("Blocks inserted successfully");
+                tracing::debug!("Blocks inserted successfully");
             }
             Err(error) => {
                 tracing::error!("Error inserting blocks: {:?}", error);
