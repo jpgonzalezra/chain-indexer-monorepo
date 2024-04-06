@@ -32,28 +32,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .init();
 
     let redis_config = config.clone().redis_config;
-    let redis_pool = redis_pool_factory(
-        redis_config.host,
-        redis_config.port,
-        redis_config.password,
-        redis_config.db,
-    )
-    .await
-    .expect("Error on acquiring redis connection.");
+    let redis_pool = redis_pool_factory(redis_config.url)
+        .await
+        .expect("Error on acquiring redis connection.");
 
     let http_provider = Provider::<Http>::try_from(&config.rpc)
         .expect("Error on provider http creation.");
 
-    let database_url = format!(
-        "postgres://{}:{}@{}:{}/{}",
-        config.db_config.username,
-        config.db_config.password.as_deref().unwrap_or(""),
-        config.db_config.host,
-        config.db_config.port,
-        config.db_config.db_name
-    );
-
-    let database_pool = PgPoolOptions::new().connect(&database_url).await?;
+    let database_pool = PgPoolOptions::new().connect(&config.db_url).await?;
     let block_repository =
         BlockRepository::new(Arc::new(database_pool.clone()), config.chain.clone());
 

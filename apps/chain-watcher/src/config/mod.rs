@@ -1,5 +1,5 @@
 use clap::Parser;
-use common::types::{ChainConfig, DbConfig, RedisConfig};
+use common::types::{ChainConfig, RedisConfig};
 use hashbrown::HashMap;
 use once_cell::sync::Lazy;
 
@@ -9,12 +9,6 @@ use once_cell::sync::Lazy;
     about = "Scalable Chain Watcher for EVM compatible blockchains."
 )]
 pub struct ChainWatcherArgs {
-    #[arg(
-        long,
-        help = "Number of transactions to fetch in parallel.",
-        default_value_t = 8
-    )]
-    pub tx_batch_size: usize,
     #[arg(
         long,
         help = "Enables resetting the blockchain state to restart indexing from the beginning. Use this flag to clear existing data and re-initialize the index. [optional]",
@@ -39,24 +33,14 @@ pub struct ChainWatcherArgs {
     pub start_block: Option<u64>,
     #[arg(long, help = "Block number to end syncing at. [optional]")]
     pub end_block: Option<u64>,
-    #[arg(long, help = "Redis host value.", default_value = "127.0.0.1")]
-    pub redis_host: String,
-    #[arg(long, help = "Redis port value.", default_value = "6379")]
-    pub redis_port: u16,
-    #[arg(long, help = "Redis password value. [optional]")]
-    pub redis_password: Option<String>,
-    #[arg(long, help = "Redis db value.", default_value_t = 1)]
-    pub redis_db: usize,
-    #[arg(long, help = "Database host value.", default_value = "localhost")]
-    pub db_host: String,
-    #[arg(long, help = "Database port value.", default_value = "5432")]
-    pub db_port: u16,
-    #[arg(long, help = "Database username value.")]
-    pub db_username: String,
-    #[arg(long, help = "Database password value. [optional]")]
-    pub db_password: Option<String>,
-    #[arg(long, help = "Database name value.")]
-    pub db_name: String,
+    #[arg(long, help = "Redis connection URL.")]
+    pub redis_url: String,
+    #[arg(long, help = "Redis stream key")]
+    pub redis_stream_key: String,
+    #[arg(long, help = "Redis group name.")]
+    pub redis_group_name: String,
+    #[arg(long, help = "Database connection URL.")]
+    pub db_url: String,
 }
 
 static CHAIN_CONFIGS: Lazy<HashMap<usize, ChainConfig>> = Lazy::new(|| {
@@ -73,9 +57,8 @@ static CHAIN_CONFIGS: Lazy<HashMap<usize, ChainConfig>> = Lazy::new(|| {
 
 #[derive(Debug, Clone)]
 pub struct Config {
-    pub tx_batch_size: usize,
     pub chain: ChainConfig,
-    pub db_config: DbConfig,
+    pub db_url: String,
     pub redis_config: RedisConfig,
     pub start_block: Option<u64>,
     pub end_block: Option<u64>,
@@ -102,20 +85,12 @@ impl Config {
         let rpc: String = args.rpc;
 
         Self {
-            tx_batch_size: args.tx_batch_size,
             chain,
-            db_config: DbConfig {
-                host: args.db_host,
-                port: args.db_port,
-                password: args.db_password,
-                db_name: args.db_name,
-                username: args.db_username,
-            },
+            db_url: args.db_url,
             redis_config: RedisConfig {
-                host: args.redis_host,
-                port: args.redis_port,
-                password: args.redis_password,
-                db: args.redis_db,
+                url: args.redis_url,
+                stream_key: args.redis_stream_key,
+                group_name: args.redis_group_name,
             },
             start_block: args.start_block,
             end_block: args.end_block,

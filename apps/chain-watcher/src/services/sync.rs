@@ -71,16 +71,14 @@ impl<B: BlockchainClientTrait, R: RedisClientTrait, E: BlockRepositoryTrait>
         for transaction in block.transactions {
             let blockchain_client = self.blockchain_client.clone();
             let redis_client = self.redis_client.clone();
+            let stream_key = self.config.redis_config.stream_key.clone();
             futures.push(task::spawn(async move {
                 if let Ok(Some(receipt)) = blockchain_client
                     .get_transaction_receipt(transaction.hash)
                     .await
                 {
                     let logs = receipt.logs;
-                    if let Err(e) = redis_client
-                        .send_logs("ASSETS_INDEXER_STREAM".to_string(), logs)
-                        .await
-                    {
+                    if let Err(e) = redis_client.send_logs(stream_key, logs).await {
                         tracing::error!(
                             "Error sending logs for transaction hash {} error {}",
                             transaction.hash,

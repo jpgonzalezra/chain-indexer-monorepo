@@ -77,27 +77,21 @@ Chain Watcher operates by directly connecting to an EVM-compatible blockchain no
 
 ### Configuration Options
 
-| Parameter        | Type           | Default   | Description                                                                            | Usage Example                 |
-| ---------------- | -------------- | --------- | -------------------------------------------------------------------------------------- | ----------------------------- |
-| `tx_batch_size`  | usize          | 8         | Number of transactions to fetch in parallel.                                           | `--tx-batch-size <SIZE>`      |
-| `reset`          | bool           | false     | If true, resets the blockchain state to restart indexing from the beginning. Optional. | `--reset`                     |
-| `chain_id`       | usize          | 1         | Chain ID number to synchronize with.                                                   | `--chain-id <ID>`             |
-| `debug`          | bool           | false     | Enables debug logging.                                                                 | `--debug`                     |
-| `rpc`            | String         |           | RPC URL to use for fetching blocks.                                                    | `--rpc <URL>`                 |
-| `start_block`    | Option<u64>    |           | Block number to start syncing from. Optional.                                          | `--start-block <NUMBER>`      |
-| `end_block`      | Option<u64>    |           | Block number to end syncing at. Optional.                                              | `--end-block <NUMBER>`        |
-| `redis_host`     | String         | 127.0.0.1 | Redis host value.                                                                      | `--redis-host <HOST>`         |
-| `redis_port`     | u16            | 6379      | Redis port value.                                                                      | `--redis-port <PORT>`         |
-| `redis_password` | Option<String> |           | Redis password value. Optional.                                                        | `--redis-password <PASSWORD>` |
-| `redis_db`       | usize          | 1         | Redis db value.                                                                        | `--redis-db <DB_NUMBER>`      |
-| `db_host`        | String         | localhost | Database host value.                                                                   | `--db-host <HOST>`            |
-| `db_port`        | u16            | 5432      | Database port value.                                                                   | `--db-port <PORT>`            |
-| `db_username`    | String         |           | Database username value.                                                               | `--db-username <USERNAME>`    |
-| `db_password`    | Option<String> |           | Database password value. Optional.                                                     | `--db-password <PASSWORD>`    |
-| `db_name`        | String         |           | Database name value.                                                                   | `--db-name <DATABASE_NAME>`   |
+| Parameter          | Type        | Default | Description                                                                                   | Usage Example               |
+| ------------------ | ----------- | ------- | --------------------------------------------------------------------------------------------- | --------------------------- |
+| `reset`            | bool        | false   | If true, resets the blockchain state to restart indexing from the beginning. Optional.        | `--reset`                   |
+| `debug`            | bool        | false   | Enables debug logging. Useful for troubleshooting and development.                            | `--debug`                   |
+| `chain_id`         | usize       | 1       | Chain ID number to synchronize with.                                                          | `--chain-id <ID>`           |
+| `rpc`              | String      |         | RPC URL to use for fetching blocks.                                                           | `--rpc <URL>`               |
+| `start_block`      | Option<u64> |         | Block number to start syncing from. Optional.                                                 | `--start-block <NUMBER>`    |
+| `end_block`        | Option<u64> |         | Block number to end syncing at. Optional.                                                     | `--end-block <NUMBER>`      |
+| `redis_url`        | String      |         | Redis connection URL.                                                                         | `--redis-url <REDIS_URL>`   |
+| `redis_stream_key` | String      |         | The key for the Redis stream where logs and data will be sent.                                | `--redis-stream-key <KEY>`  |
+| `redis_group_name` | String      |         | The name of the Redis group associated with the stream for distributing work among consumers. | `--redis-group-name <NAME>` |
+| `db_url`           | String      |         | Database connection URL.                                                                      | `--db-url <DB_URL>`         |
 
 ### Example Usage
 
 ```shell
-chain_watcher --tx-batch-size 10 --db-trans-batch-size 5 --reset --chain-id 1 --debug --rpc "http://localhost:8545" --start-block 0 --redis-host "127.0.0.1" --redis-port 6379 --db-host "localhost" --db-port 5432 --db-username "user" --db-password "pass" --db-name "indexer_db"
+$ chain_watcher --chain-id 1 --rpc "http://localhost:8545" --start-block 0 --end-block 10000 --redis-url "redis://:password@host:port/db_name" --redis-stream-key "my_stream_key" --redis-group-name "my_group_name" --db-url "postgresql://user:password@host:port/db_name"
 ```
