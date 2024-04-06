@@ -12,7 +12,6 @@ pub enum Bind {
 #[derive(Debug)]
 pub struct Block {
     pub block_number: u64,
-    pub hash: String,
     pub chain_id: u32,
 }
 
@@ -60,11 +59,10 @@ impl BlockRepositoryTrait for BlockRepository {
     }
 
     async fn insert_block(&self, block: Block) -> Result<(), sqlx::Error> {
-        let query = "INSERT INTO block (block_number, hash, chain_id) VALUES ($1, $2, $3) ON CONFLICT (chain_id, block_number) DO NOTHING";
+        let query = "INSERT INTO block (block_number, chain_id) VALUES ($1, $2)";
 
         sqlx::query(query)
             .bind(block.block_number as i64)
-            .bind(&block.hash)
             .bind(block.chain_id as i32)
             .execute(&*self.database_pool)
             .await?;

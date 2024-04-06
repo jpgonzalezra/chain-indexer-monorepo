@@ -3,7 +3,6 @@ use std::time::Instant;
 use ethers::{
     providers::ProviderError,
     types::{Block as EthersBlock, Transaction},
-    utils::hex,
 };
 use futures::stream::{FuturesUnordered, StreamExt};
 use tokio::task;
@@ -100,7 +99,6 @@ impl<B: BlockchainClientTrait, R: RedisClientTrait, E: BlockRepositoryTrait>
             .block_repository
             .insert_block(Block {
                 block_number,
-                hash: format!("0x{}", hex::encode(block.hash.unwrap())),
                 chain_id: self.config.chain.id,
             })
             .await
