@@ -74,7 +74,6 @@ redis-server --version
 | Option                | Type           | Default       | Description                                                                                    | Usage                          |
 | --------------------- | -------------- | ------------- | ---------------------------------------------------------------------------------------------- | ------------------------------ |
 | `indexer_name`        | String         |               | Name of the indexer client. Used for logging and monitoring.                                   | `--indexer-name <NAME>`        |
-| `db_trans_batch_size` | usize          | `1`           | Determines the number of transactions to be saved in a single batch operation to the database. | `--db-trans-batch-size <SIZE>` |
 | `chain_id`            | usize          | `1` (mainnet) | The chain ID number for the blockchain to synchronize with.                                    | `--chain-id <ID>`              |
 | `debug`               | bool           | false         | Enables debug logging.                                                                         | `--debug`                      |
 | `redis_host`          | String         | `"127.0.0.1"` | The hostname or IP address of the Redis server.                                                | `--redis-host <HOST>`          |

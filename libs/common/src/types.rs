@@ -85,7 +85,6 @@ pub struct DbConfig {
     pub username: String,
     pub password: Option<String>,
     pub db_name: String,
-    pub db_trans_batch_size: usize,
 }
 
 #[derive(Debug, Clone)]

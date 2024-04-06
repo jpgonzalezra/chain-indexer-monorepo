@@ -77,25 +77,24 @@ Chain Watcher operates by directly connecting to an EVM-compatible blockchain no
 
 ### Configuration Options
 
-| Parameter             | Type           | Default   | Description                                                                               | Usage Example                  |
-| --------------------- | -------------- | --------- | ----------------------------------------------------------------------------------------- | ------------------------------ |
-| `tx_batch_size`       | usize          | 8         | Number of transactions to fetch in parallel.                                              | `--tx-batch-size <SIZE>`       |
-| `db_trans_batch_size` | usize          | 3         | Number of transactions to be saved in a single batch operation to the database. Optional. | `--db-trans-batch-size <SIZE>` |
-| `reset`               | bool           | false     | If true, resets the blockchain state to restart indexing from the beginning. Optional.    | `--reset`                      |
-| `chain_id`            | usize          | 1         | Chain ID number to synchronize with.                                                      | `--chain-id <ID>`              |
-| `debug`               | bool           | false     | Enables debug logging.                                                                    | `--debug`                      |
-| `rpc`                 | String         |           | RPC URL to use for fetching blocks.                                                       | `--rpc <URL>`                  |
-| `start_block`         | Option<u64>    |           | Block number to start syncing from. Optional.                                             | `--start-block <NUMBER>`       |
-| `end_block`           | Option<u64>    |           | Block number to end syncing at. Optional.                                                 | `--end-block <NUMBER>`         |
-| `redis_host`          | String         | 127.0.0.1 | Redis host value.                                                                         | `--redis-host <HOST>`          |
-| `redis_port`          | u16            | 6379      | Redis port value.                                                                         | `--redis-port <PORT>`          |
-| `redis_password`      | Option<String> |           | Redis password value. Optional.                                                           | `--redis-password <PASSWORD>`  |
-| `redis_db`            | usize          | 1         | Redis db value.                                                                           | `--redis-db <DB_NUMBER>`       |
-| `db_host`             | String         | localhost | Database host value.                                                                      | `--db-host <HOST>`             |
-| `db_port`             | u16            | 5432      | Database port value.                                                                      | `--db-port <PORT>`             |
-| `db_username`         | String         |           | Database username value.                                                                  | `--db-username <USERNAME>`     |
-| `db_password`         | Option<String> |           | Database password value. Optional.                                                        | `--db-password <PASSWORD>`     |
-| `db_name`             | String         |           | Database name value.                                                                      | `--db-name <DATABASE_NAME>`    |
+| Parameter        | Type           | Default   | Description                                                                            | Usage Example                 |
+| ---------------- | -------------- | --------- | -------------------------------------------------------------------------------------- | ----------------------------- |
+| `tx_batch_size`  | usize          | 8         | Number of transactions to fetch in parallel.                                           | `--tx-batch-size <SIZE>`      |
+| `reset`          | bool           | false     | If true, resets the blockchain state to restart indexing from the beginning. Optional. | `--reset`                     |
+| `chain_id`       | usize          | 1         | Chain ID number to synchronize with.                                                   | `--chain-id <ID>`             |
+| `debug`          | bool           | false     | Enables debug logging.                                                                 | `--debug`                     |
+| `rpc`            | String         |           | RPC URL to use for fetching blocks.                                                    | `--rpc <URL>`                 |
+| `start_block`    | Option<u64>    |           | Block number to start syncing from. Optional.                                          | `--start-block <NUMBER>`      |
+| `end_block`      | Option<u64>    |           | Block number to end syncing at. Optional.                                              | `--end-block <NUMBER>`        |
+| `redis_host`     | String         | 127.0.0.1 | Redis host value.                                                                      | `--redis-host <HOST>`         |
+| `redis_port`     | u16            | 6379      | Redis port value.                                                                      | `--redis-port <PORT>`         |
+| `redis_password` | Option<String> |           | Redis password value. Optional.                                                        | `--redis-password <PASSWORD>` |
+| `redis_db`       | usize          | 1         | Redis db value.                                                                        | `--redis-db <DB_NUMBER>`      |
+| `db_host`        | String         | localhost | Database host value.                                                                   | `--db-host <HOST>`            |
+| `db_port`        | u16            | 5432      | Database port value.                                                                   | `--db-port <PORT>`            |
+| `db_username`    | String         |           | Database username value.                                                               | `--db-username <USERNAME>`    |
+| `db_password`    | Option<String> |           | Database password value. Optional.                                                     | `--db-password <PASSWORD>`    |
+| `db_name`        | String         |           | Database name value.                                                                   | `--db-name <DATABASE_NAME>`   |
 
 ### Example Usage
 

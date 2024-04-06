@@ -17,12 +17,6 @@ pub struct ChainWatcherArgs {
     pub tx_batch_size: usize,
     #[arg(
         long,
-        help = "Specifies the number of transactions to be saved in a single batch operation to the database. [optional]",
-        default_value_t = 3
-    )]
-    pub db_trans_batch_size: usize,
-    #[arg(
-        long,
         help = "Enables resetting the blockchain state to restart indexing from the beginning. Use this flag to clear existing data and re-initialize the index. [optional]",
         default_value_t = false
     )]
@@ -116,7 +110,6 @@ impl Config {
                 password: args.db_password,
                 db_name: args.db_name,
                 username: args.db_username,
-                db_trans_batch_size: args.db_trans_batch_size,
             },
             redis_config: RedisConfig {
                 host: args.redis_host,

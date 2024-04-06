@@ -53,8 +53,6 @@ impl<B: BlockchainClientTrait, R: RedisClientTrait, E: BlockRepositoryTrait>
     }
 
     async fn process_blocks(&self, block_numbers: impl Iterator<Item = u64>) {
-        let mut blocks_batch: Vec<Block> = Vec::new();
-
         for block_number in block_numbers {
             if let Ok(Some(block)) = self
                 .blockchain_client
@@ -62,39 +60,7 @@ impl<B: BlockchainClientTrait, R: RedisClientTrait, E: BlockRepositoryTrait>
                 .await
             {
                 self.process_block(block.clone()).await;
-                blocks_batch.push(Block {
-                    block_number: block.number.unwrap().as_u64(),
-                    hash: format!("0x{}", hex::encode(block.hash.unwrap())),
-                    chain_id: self.config.chain.id,
-                });
-
-                if blocks_batch.len() == self.config.db_config.db_trans_batch_size {
-                    tracing::info!(
-                        "Insert {} processed index blocks into the db",
-                        self.config.db_config.db_trans_batch_size
-                    );
-                    match self
-                        .block_repository
-                        .insert_blocks_bulk(&blocks_batch)
-                        .await
-                    {
-                        Ok(_) => {
-                            tracing::info!("Blocks inserted successfully");
-                        }
-                        Err(error) => {
-                            tracing::error!("Error inserting blocks: {:?}", error);
-                        }
-                    }
-                    blocks_batch.clear();
-                }
             }
-        }
-
-        if !blocks_batch.is_empty() {
-            _ = self
-                .block_repository
-                .insert_blocks_bulk(&blocks_batch)
-                .await;
         }
     }
 
@@ -131,12 +97,30 @@ impl<B: BlockchainClientTrait, R: RedisClientTrait, E: BlockRepositoryTrait>
 
         while futures.next().await.is_some() {}
 
+        let block_number = block.number.unwrap().as_u64();
+        match self
+            .block_repository
+            .insert_block(Block {
+                block_number,
+                hash: format!("0x{}", hex::encode(block.hash.unwrap())),
+                chain_id: self.config.chain.id,
+            })
+            .await
+        {
+            Ok(_) => {
+                tracing::info!("Blocks inserted successfully");
+            }
+            Err(error) => {
+                tracing::error!("Error inserting blocks: {:?}", error);
+            }
+        }
+
         let end_time = Instant::now();
         let duration = end_time.duration_since(start_time);
 
         tracing::info!(
             "Block number {:?} processed in {:?}.",
-            block.number,
+            block_number,
             duration
         );
     }
