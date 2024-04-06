@@ -71,23 +71,18 @@ redis-server --version
 
 ### Configuration Options
 
-| Option                | Type           | Default       | Description                                                                                    | Usage                          |
-| --------------------- | -------------- | ------------- | ---------------------------------------------------------------------------------------------- | ------------------------------ |
-| `indexer_name`        | String         |               | Name of the indexer client. Used for logging and monitoring.                                   | `--indexer-name <NAME>`        |
-| `chain_id`            | usize          | `1` (mainnet) | The chain ID number for the blockchain to synchronize with.                                    | `--chain-id <ID>`              |
-| `debug`               | bool           | false         | Enables debug logging.                                                                         | `--debug`                      |
-| `redis_host`          | String         | `"127.0.0.1"` | The hostname or IP address of the Redis server.                                                | `--redis-host <HOST>`          |
-| `redis_port`          | u16            | `6379`        | The port number on which the Redis server is listening.                                        | `--redis-port <PORT>`          |
-| `redis_password`      | Option<String> |               | The password for accessing Redis, if authentication is required. Optional.                     | `--redis-password <PASSWORD>`  |
-| `redis_db`            | usize          | `1`           | The Redis database number to use.                                                              | `--redis-db <DB_NUMBER>`       |
-| `db_host`             | String         | `"localhost"` | The hostname or IP address of the database server.                                             | `--db-host <HOST>`             |
-| `db_port`             | u16            | `5432`        | The port number on which the database server is listening.                                     | `--db-port <PORT>`             |
-| `db_username`         | String         |               | The username for accessing the database.                                                       | `--db-username <USERNAME>`     |
-| `db_password`         | Option<String> |               | The password for accessing the database. Optional.                                             | `--db-password <PASSWORD>`     |
-| `db_name`             | String         |               | The name of the database to use for storing indexed data.                                      | `--db-name <DATABASE_NAME>`    |
+| Option             | Type   | Default       | Description                                                                                   | Usage                       |
+| ------------------ | ------ | ------------- | --------------------------------------------------------------------------------------------- | --------------------------- |
+| `indexer_name`     | String |               | Name of the indexer client. Used for logging and monitoring.                                  | `--indexer-name <NAME>`     |
+| `chain_id`         | usize  | `1` (mainnet) | The chain ID number for the blockchain to synchronize with.                                   | `--chain-id <ID>`           |
+| `redis_url`        | String |               | The Redis connection URL, encapsulating host, port, database number, and authentication info. | `--redis-url <REDIS_URL>`   |
+| `redis_stream_key` | String |               | The key for the Redis stream where logs and data will be sent.                                | `--redis-stream-key <KEY>`  |
+| `redis_group_name` | String |               | The name of the Redis group associated with the stream for distributing work among consumers. | `--redis-group-name <NAME>` |
+| `db_url`           | String |               | The database connection URL, encapsulating host, port, username, password, and database name. | `--db-url <DB_URL>`         |
+| `debug`            | bool   | false         | Enables debug logging. Useful for troubleshooting and development.                            | `--debug`                   |
 
 ### Example Usage
 
 ```shell
-assets-indexer --indexer-name "MyIndexer" --db-trans-batch-size 100 --chain-id 3 --redis-host "192.168.1.100" --redis-port 6379 --db-host "localhost" --db-port 5432 --db-username "user" --db-password "password" --db-name "indexer_db"
+assets-indexer --indexer-name "MyIndexer" --chain-id 1 --redis-url "redis://user:password@hosts:port/db_name" --redis-stream-key "indexer-stream-key" --redis-group-name "indexer-group-name" --db-url "postgresql://user:password@host:port/db_name" --debug
 ```

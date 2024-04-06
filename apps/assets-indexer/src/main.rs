@@ -76,27 +76,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let redis_config = config.redis_config;
 
-    let mut redis_conn = redis_client_factory(
-        redis_config.host,
-        redis_config.port,
-        redis_config.password,
-        redis_config.db,
-    )
-    .expect("Error on acquiring redis client")
-    .get_async_connection()
-    .await
-    .expect("Error on acquiring redis connection");
+    let mut redis_conn = redis_client_factory(redis_config.url)
+        .expect("Error on acquiring redis client")
+        .get_async_connection()
+        .await
+        .expect("Error on acquiring redis connection");
 
-    let database_url = format!(
-        "postgres://{}:{}@{}:{}/{}",
-        config.db_config.username,
-        config.db_config.password.as_deref().unwrap_or(""),
-        config.db_config.host,
-        config.db_config.port,
-        config.db_config.db_name
-    );
-
-    let database_pool = PgPoolOptions::new().connect(&database_url).await?;
+    let database_pool = PgPoolOptions::new().connect(&config.db_url).await?;
 
     let mut processor = EventProcessorService::new();
     processor.add_processor(Box::new(Erc721TransferProcessor {
@@ -112,22 +98,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         contract_repository: ContractRepository::new(Arc::new(database_pool.clone())),
     }));
 
-    ensure_stream_and_group_exist(
-        &mut redis_conn,
-        "ASSETS_INDEXER_STREAM",
-        "ASSETS_INDEXER_GROUP",
-    )
-    .await?;
+    let stream_key = redis_config.stream_key;
+    let group = redis_config.group_name;
+    ensure_stream_and_group_exist(&mut redis_conn, &stream_key, &group).await?;
 
     let consumer_name: String = config.indexer_name;
     let opts: StreamReadOptions =
-        StreamReadOptions::default().group("ASSETS_INDEXER_GROUP", consumer_name);
-
-    let stream_key = "ASSETS_INDEXER_STREAM";
+        StreamReadOptions::default().group(&group, consumer_name);
 
     loop {
-        let results: RedisResult<StreamReadReply> =
-            redis_conn.xread_options(&[stream_key], &[">"], &opts).await;
+        let results: RedisResult<StreamReadReply> = redis_conn
+            .xread_options(&[&stream_key], &[">"], &opts)
+            .await;
 
         match results {
             Ok(reply) => {

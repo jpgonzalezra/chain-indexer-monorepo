@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use clap::Parser;
-use common::types::{ChainConfig, DbConfig, RedisConfig};
+use common::types::{ChainConfig, RedisConfig};
 use once_cell::sync::Lazy;
 
 #[derive(Parser, Debug)]
@@ -18,24 +18,14 @@ pub struct AssetsIndexerArgs {
         default_value_t = 1
     )]
     pub chain_id: usize,
-    #[arg(long, help = "Redis host value.", default_value = "127.0.0.1")]
-    pub redis_host: String,
-    #[arg(long, help = "Redis port value.", default_value = "6379")]
-    pub redis_port: u16,
-    #[arg(long, help = "Redis password value. [optional]")]
-    pub redis_password: Option<String>,
-    #[arg(long, help = "Redis db value.", default_value_t = 1)]
-    pub redis_db: usize,
-    #[arg(long, help = "Database host value.", default_value = "localhost")]
-    pub db_host: String,
-    #[arg(long, help = "Database port value.", default_value = "5432")]
-    pub db_port: u16,
-    #[arg(long, help = "Database username value.")]
-    pub db_username: String,
-    #[arg(long, help = "Database password value. [optional]")]
-    pub db_password: Option<String>,
-    #[arg(long, help = "Database name value.")]
-    pub db_name: String,
+    #[arg(long, help = "Redis connection URL.")]
+    pub redis_url: String,
+    #[arg(long, help = "Redis stream key")]
+    pub redis_stream_key: String,
+    #[arg(long, help = "Redis group name.")]
+    pub redis_group_name: String,
+    #[arg(long, help = "Database connection URL.")]
+    pub db_url: String,
     #[arg(
         long,
         help = "Enables debug logging. Useful for troubleshooting and development. [optional]",
@@ -60,7 +50,7 @@ static CHAIN_CONFIGS: Lazy<HashMap<usize, ChainConfig>> = Lazy::new(|| {
 pub struct Config {
     pub indexer_name: String,
     pub chain: ChainConfig,
-    pub db_config: DbConfig,
+    pub db_url: String,
     pub redis_config: RedisConfig,
     pub debug: bool,
 }
@@ -81,18 +71,11 @@ impl Config {
         Self {
             indexer_name: args.indexer_name,
             chain,
-            db_config: DbConfig {
-                host: args.db_host,
-                port: args.db_port,
-                password: args.db_password,
-                db_name: args.db_name,
-                username: args.db_username,
-            },
+            db_url: args.db_url,
             redis_config: RedisConfig {
-                host: args.redis_host,
-                port: args.redis_port,
-                password: args.redis_password,
-                db: args.redis_db,
+                url: args.redis_url,
+                stream_key: args.redis_stream_key,
+                group_name: args.redis_group_name,
             },
             debug: args.debug,
         }
